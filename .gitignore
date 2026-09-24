@@ -25,6 +25,7 @@ pnpm-debug.log*
 
 # Supabase local
 .supabase/
+supabase/.temp/
 
 # Sistema operativo
 .DS_Store

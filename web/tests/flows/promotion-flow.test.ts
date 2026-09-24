@@ -18,6 +18,7 @@ function mig(name: string): string {
 
 const sql011 = mig("011_promotion.sql");
 const sql033 = mig("033_promotion.sql");
+const sql049 = mig("049_t66_bootstrap_promotion_security.sql");
 
 const PROMOTION_ROLES = ["global", "director", "admin_ie", "coordinador"] as const;
 
@@ -233,5 +234,41 @@ describe("T64 — wizard prefill (033)", () => {
     expect(sql033).toContain(
       "AND status IN ('PREPARED', 'RUNNING', 'INTERRUPTED')"
     );
+  });
+});
+
+describe("T66/A4 — prepare_promotion + execute (049)", () => {
+  it("prepare crea PREPARED con preview y NO muta períodos", () => {
+    expect(sql049).toContain("CREATE OR REPLACE FUNCTION prepare_promotion(");
+    expect(sql049).toContain("'PREPARED'");
+    expect(sql049).toContain("'promotion_prepared'");
+    const start = sql049.indexOf("FUNCTION prepare_promotion(");
+    const end = sql049.indexOf("COMMENT ON FUNCTION prepare_promotion");
+    const prepareBody = start >= 0 && end > start ? sql049.slice(start, end) : sql049;
+    expect(prepareBody).not.toContain("UPDATE periodos_escolares");
+    expect(prepareBody).not.toContain("INSERT INTO periodos_escolares");
+    expect(prepareBody).toContain("preview_promotion");
+    expect(prepareBody).toContain("'preview', v_preview");
+  });
+
+  it("execute solo corre PREPARED|RUNNING|FAILED|INTERRUPTED o auto-prepara", () => {
+    expect(sql049).toContain(
+      "IF v_existing_batch.status IN ('PREPARED', 'RUNNING', 'FAILED', 'INTERRUPTED') THEN"
+    );
+    expect(sql049).toContain("v_prep := prepare_promotion(");
+    expect(sql049).toContain("'promotion_executed'");
+  });
+
+  it("A2: claim_first_global one-shot sin contraseña fija", () => {
+    expect(sql049).toContain("CREATE OR REPLACE FUNCTION claim_first_global()");
+    expect(sql049).toContain("v_existing > 0");
+    expect(sql049).toContain("'first_global_claimed'");
+    expect(sql049).toContain("one_shot");
+    expect(sql049).not.toMatch(/password\s*[:=]\s*['"](?:admin|123|global)/i);
+  });
+
+  it("A5: execute manual; map_grade ya cubierto en 033", () => {
+    expect(sql049).toContain("Manual siempre");
+    expect(sql033).toContain("CREATE OR REPLACE FUNCTION map_grade(");
   });
 });

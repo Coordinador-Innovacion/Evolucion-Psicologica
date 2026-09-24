@@ -46,13 +46,40 @@ Si una aplicación vence, un rol autorizado puede ampliar su fecha/hora de fin. 
 Una nueva aplicación representa una aplicación realmente nueva.
 
 ## Transferencia
-No reescribir registros históricos para cambiar su institución de origen. Caso abierto continúa mediante nuevas acciones. La institución origen queda en consulta.
+Flujo vigente DC-007 (A1): **B solicita → A autoriza/rechaza**.
+
+- `initiate_transfer(caso, origen, nivel?, grado?, sección?)` por B (destino) → `pending` sin efecto en A.
+- `authorize_transfer(id)` por A (origen) → cierra período A, crea período B, transfiere responsabilidad, `approved`.
+- `reject_transfer(id, motivo?)` por A → `rejected` sin efectos.
+- Solo `pending` es activa (índice único). Nivel/grado destino NOT NULL al autorizar.
+- No reescribir registros históricos para cambiar su institución de origen. Caso abierto continúa mediante nuevas acciones. Origen solo consulta; destino gestiona nuevas acciones.
+
+Migración 048; reemplaza flujo 019 (`accept_transfer` eliminado).
 
 ## Licencia
 El cliente nunca decide si la licencia está activa. Cada operación protegida consulta estado server-side. Global tiene bypass total.
 
+DC-009 (A3): aviso UI pequeño (días restantes / vencida = bloqueo nuevas atenciones); NO cierra sesión ni cambia roles (DC-003/005).
+
 ## Promoción
-Preview y confirmación antes de ejecutar. Lote único por contexto completado. Si existe lote recuperable, continuar. Cada alumno procesado de forma idempotente. Excepciones explícitas y auditadas.
+DC-010 (A4): flujo **PREPARAR → REVISAR → EJECUTAR**.
+
+- `prepare_promotion` crea lote `PREPARED` con preview en `counts`; NO muta datos.
+- `execute_promotion` solo ejecuta `PREPARED|RUNNING|FAILED|INTERRUPTED` (auto-prepara si no hay lote).
+- Preview y confirmación antes de ejecutar. Lote único por contexto completado. Si existe lote recuperable, continuar. Cada alumno procesado de forma idempotente. Excepciones explícitas y auditadas.
+
+DC-011 (A5): promoción siempre manual; `map_grade` 6.º Prim→1.º Sec; 5.º Sec→egreso.
+
+## Bootstrap Global
+DC-008 (A2): `claim_first_global()` one-shot; sin contraseña fija; se autodesactiva al primer Global.
+
+## Seguridad T65/T66
+- B1: authz en SECURITY DEFINER (`get_student_periods`, duplicados, familiares, encuestas).
+- B2: triggers máquina de estados (transferencias, casos, ventana 30 min atención).
+- B3: `necesidades_especiales` SELECT/MANAGE solo Global/Psicólogo.
+- B4: `delete_institution` bloquea si ANY histórico de períodos.
+- B5: cerrar/documentar período seed 2026 antes de T64 si EXCLUDE lo exige.
+- B6: evidenciar pgcrypto/pg_trgm; B7: no restaurar 016–018.
 
 ## Entregable por módulo
 Migración, tipos, RLS, funciones, componentes, tests y criterios de aceptación.

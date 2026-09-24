@@ -324,6 +324,14 @@ BEGIN
         );
     END IF;
 
+    -- Destino fijado al solicitar: nivel y grado son NOT NULL en periodos_escolares
+    IF v_transfer.destination_nivel_id IS NULL OR v_transfer.destination_grado_id IS NULL THEN
+        RETURN json_build_object(
+            'success', false,
+            'error', 'La solicitud debe indicar nivel y grado destino antes de autorizar'
+        );
+    END IF;
+
     SELECT * INTO v_caso FROM casos WHERE id = v_transfer.caso_id;
     IF v_caso IS NULL THEN
         RETURN json_build_object('success', false, 'error', 'Caso no encontrado');

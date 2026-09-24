@@ -65,5 +65,17 @@ T53 Storage; T54 UX Caso; T55 UX Coordinador; T56 analítica; T57 errores/observ
 
 T58 unit tests; T59 integración; T60 RLS; T61 Caso; T62 transferencia; T63 licencias; T64 promoción; T65 revisión quirúrgica; T66 CONVERGE.
 
+## T66 — CONVERGE FINAL (MI MO)
+- A1 DC-007: transferencias B solicita → A autoriza (048).
+- A2 DC-008: `claim_first_global` one-shot (049).
+- A3 DC-009: aviso licencia sin cortar sesión (ya en UI).
+- A4 DC-010: `prepare_promotion` PREPARED + execute solo lotes preparados (049 + wizard).
+- A5 DC-011: promoción manual; map_grade 6.º→1.º Sec; egreso 5.º Sec.
+- B1–B4 en 049 (authz DEFINER, triggers máquina de estados, necesidades clínicas, delete_institution con histórico).
+- B5: documentar/cerrar período seed 2026 antes de T64 si afecta EXCLUDE.
+- B6: evidenciar pgcrypto/pg_trgm sin cambiar.
+- B7: NO restaurar 016–018.
+- Actualizar 00_DECISIONES, 05/06/07; suite completa; reporte G.
+
 ## Orden recomendado
 Datos → constraints → seguridad → reglas → operaciones server-side → UI → pruebas → revisión quirúrgica.

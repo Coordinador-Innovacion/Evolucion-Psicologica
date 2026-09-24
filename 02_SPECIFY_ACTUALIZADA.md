@@ -145,7 +145,9 @@ Estados: Inicio, En proceso, Cerrado. Creación = Inicio. Primera Atención = En
 Pertenece a Caso, es histórica y no se elimina físicamente. Editable durante 30 minutos desde registro usando hora del servidor; después queda bloqueada. Cambios dentro de ventana se auditan.
 
 ## Transferencia
-B solicita, A autoriza, B recibe historia y asume responsabilidad operativa. A pierde gestión operativa y conserva consulta equivalente a Coordinador.
+B solicita, A autoriza o rechaza, B recibe historia y asume responsabilidad operativa. A pierde gestión operativa y conserva consulta equivalente a Coordinador.
+
+La solicitud de B queda `pending` sin efecto inmediato en A. Solo A (origen) autoriza (efectos completos) o rechaza (sin efectos). Nivel/grado/sección destino se fijan al solicitar.
 
 Todo lo existente antes del instante de transferencia queda histórico e inmutable para B. Un Caso abierto continúa en B mediante nuevas Atenciones y acciones posteriores.
 
@@ -154,6 +156,8 @@ Global registra por I.E. una licencia con uno o varios códigos/serie, fecha de 
 
 ## Promoción masiva
 Wizard con I.E./ámbito, origen prefijado al año anterior, destino prefijado al año actual y previsualización. Origen/destino son visibles y editables antes de ejecutar.
+
+Flujo: PREPARAR (lote `PREPARED` sin mutar datos) → REVISAR (preview/counts) → EJECUTAR (solo lotes preparados/reanudables). Promoción siempre manual.
 
 Se conserva la idempotencia, reanudación y manejo explícito de excepciones.
 

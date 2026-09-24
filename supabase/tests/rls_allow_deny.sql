@@ -410,62 +410,138 @@ BEGIN
     END;
 END $$;
 
--- ---------- 8. Transferencias: docente DENY iniciar ----------
+-- ---------- 8. Transferencias A1: B solicita → A autoriza ----------
 SELECT public.t60_login('a9000000-0000-4000-8000-0000000000f1');
 DO $$
 DECLARE r JSON;
 BEGIN
     r := public.initiate_transfer(
         'aa000000-0000-4000-8000-000000000031',
-        'b0000000-0000-4000-8000-00000000000b'
+        'a0000000-0000-4000-8000-00000000000a',
+        'b1000000-0000-4000-8000-000000000001',
+        'b2000000-0000-4000-8000-000000000001'
     );
     PERFORM public.t60_rec(
         'RLS8 initiate_transfer docente DENY',
         (r->>'success')::boolean IS FALSE
-        AND coalesce(r->>'error', '') ILIKE '%Director%',
+        AND coalesce(r->>'error', '') ILIKE '%solicitar transferencias%',
         r::text
     );
 END $$;
 
--- Director A ALLOW iniciar (caso A → B)
-SELECT public.t60_login('a9000000-0000-4000-8000-0000000000d1');
+-- Director B (destino) solicita hacia A (origen) → ALLOW pending, sin efecto en A
+SELECT public.t60_login('a9000000-0000-4000-8000-0000000000d3');
 DO $$
 DECLARE r JSON;
 BEGIN
     r := public.initiate_transfer(
         'aa000000-0000-4000-8000-000000000031',
-        'b0000000-0000-4000-8000-00000000000b'
+        'a0000000-0000-4000-8000-00000000000a',
+        'b1000000-0000-4000-8000-000000000001',
+        'b2000000-0000-4000-8000-000000000001',
+        'A'
     );
     PERFORM public.t60_rec(
-        'RLS8b initiate_transfer director A ALLOW',
-        (r->>'success')::boolean IS TRUE,
+        'RLS8b initiate_transfer director B solicita ALLOW',
+        (r->>'success')::boolean IS TRUE
+        AND coalesce(r->>'status', '') = 'pending',
         r::text
     );
 END $$;
 
--- Director B (otra IE) no acepta transferencia originada en A hacia B...
--- (destino es B, así que director B podría aceptar; probar docente en aceptar)
+-- Período A intacto (sin RLS)
+RESET ROLE;
+DO $$
+DECLARE n_open INT;
+BEGIN
+    SELECT count(*) INTO n_open FROM periodos_escolares
+     WHERE id = 'aa000000-0000-4000-8000-000000000011' AND end_date IS NULL;
+    PERFORM public.t60_rec('RLS8c período A intacto al solicitar', n_open = 1, 'open=' || n_open);
+END $$;
+SET LOCAL ROLE authenticated;
+
+-- Docente no autoriza
 SELECT public.t60_login('a9000000-0000-4000-8000-0000000000f1');
 DO $$
 DECLARE r JSON; tid UUID;
 BEGIN
     SELECT id INTO tid FROM transferencias
-     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031'
-     LIMIT 1;
+     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031' AND status = 'pending' LIMIT 1;
     IF tid IS NULL THEN
-        PERFORM public.t60_rec('RLS8c accept_transfer docente DENY', false, 'no transfer seed');
+        PERFORM public.t60_rec('RLS8d authorize docente DENY', false, 'no pending');
         RETURN;
     END IF;
-    r := public.accept_transfer(tid, 'b1000000-0000-4000-8000-000000000001', 'b2000000-0000-4000-8000-000000000001', 'A');
+    r := public.authorize_transfer(tid);
     PERFORM public.t60_rec(
-        'RLS8c accept_transfer docente DENY',
+        'RLS8d authorize_transfer docente DENY',
         (r->>'success')::boolean IS FALSE
-        AND coalesce(r->>'error', '') ILIKE '%Director%',
+        AND coalesce(r->>'error', '') ILIKE '%autorizar transferencias%',
         r::text
     );
 END $$;
 
--- Status accepted es válido (constraint 040)
+-- Director B (destino) no autoriza (solo origen A)
+SELECT public.t60_login('a9000000-0000-4000-8000-0000000000d3');
+DO $$
+DECLARE r JSON; tid UUID;
+BEGIN
+    SELECT id INTO tid FROM transferencias
+     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031' AND status = 'pending' LIMIT 1;
+    IF tid IS NULL THEN
+        PERFORM public.t60_rec('RLS8e authorize director B DENY', false, 'no pending');
+        RETURN;
+    END IF;
+    r := public.authorize_transfer(tid);
+    PERFORM public.t60_rec(
+        'RLS8e authorize_transfer director B DENY',
+        (r->>'success')::boolean IS FALSE
+        AND coalesce(r->>'error', '') ILIKE '%origen%',
+        r::text
+    );
+END $$;
+
+-- Director A (origen) autoriza → ALLOW con efectos
+SELECT public.t60_login('a9000000-0000-4000-8000-0000000000d1');
+DO $$
+DECLARE r JSON; tid UUID;
+BEGIN
+    SELECT id INTO tid FROM transferencias
+     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031' AND status = 'pending' LIMIT 1;
+    IF tid IS NULL THEN
+        PERFORM public.t60_rec('RLS8f authorize director A ALLOW', false, 'no pending');
+        RETURN;
+    END IF;
+    r := public.authorize_transfer(tid);
+    PERFORM public.t60_rec(
+        'RLS8f authorize_transfer director A ALLOW',
+        (r->>'success')::boolean IS TRUE
+        AND coalesce(r->>'status', '') = 'approved',
+        r::text
+    );
+END $$;
+
+-- Efectos sin RLS (postgres)
+RESET ROLE;
+DO $$
+DECLARE st TEXT; n INT; tid UUID;
+BEGIN
+    SELECT id INTO tid FROM transferencias
+     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031'
+       AND status = 'approved'
+     LIMIT 1;
+    SELECT status INTO st FROM transferencias WHERE id = tid;
+    PERFORM public.t60_rec('RLS8g status=approved', st = 'approved', 'status=' || coalesce(st, 'NULL'));
+    SELECT count(*) INTO n FROM periodos_escolares
+     WHERE id = 'aa000000-0000-4000-8000-000000000011' AND end_date IS NOT NULL;
+    PERFORM public.t60_rec('RLS8h período A cerrado al autorizar', n = 1, 'closed=' || n);
+    SELECT count(*) INTO n FROM periodos_escolares
+     WHERE student_id = 'aa000000-0000-4000-8000-000000000001'
+       AND institution_id = 'b0000000-0000-4000-8000-00000000000b'
+       AND end_date IS NULL;
+    PERFORM public.t60_rec('RLS8i período B creado', n = 1, 'rows=' || n);
+END $$;
+
+-- Status accepted sigue en CHECK (histórico 040)
 RESET ROLE;
 DO $$
 DECLARE n INT;
@@ -473,15 +549,21 @@ BEGIN
     SELECT count(*) INTO n
       FROM pg_constraint
      WHERE conname = 'transferencias_status_check'
-       AND pg_get_constraintdef(oid) LIKE '%accepted%';
-    PERFORM public.t60_rec('RLS8d constraint status incluye accepted', n = 1, 'matches=' || n);
+        AND pg_get_constraintdef(oid) LIKE '%accepted%';
+    PERFORM public.t60_rec('RLS8j constraint status incluye accepted', n = 1, 'matches=' || n);
 END $$;
 
--- Reabrir período A: initiate_transfer lo cierra (end_date); RLS9/11
--- exigen período activo (end_date IS NULL) para el acote de institución.
+-- Restaurar seed A: RLS9/11 exigen período activo (end_date IS NULL)
+DELETE FROM periodos_escolares
+ WHERE student_id = 'aa000000-0000-4000-8000-000000000001'
+   AND institution_id = 'b0000000-0000-4000-8000-00000000000b';
 UPDATE periodos_escolares
 SET end_date = NULL, motivo_retiro = NULL, updated_at = NOW()
 WHERE id = 'aa000000-0000-4000-8000-000000000011';
+UPDATE casos
+SET current_responsible_id = 'a9000000-0000-4000-8000-0000000000e1',
+    updated_at = NOW()
+WHERE id = 'aa000000-0000-4000-8000-000000000031';
 
 -- ---------- 9. Licencias: can_create_attention vencida / get_license_status ----------
 RESET ROLE;

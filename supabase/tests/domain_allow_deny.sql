@@ -399,62 +399,66 @@ BEGIN
 END $$;
 
 -- ============================================================
--- T62 — TRANSFERENCIAS
+-- T62 — TRANSFERENCIAS (A1: B solicita → A autoriza / A rechaza)
 -- ============================================================
 
--- Resetear período A activo si initiate_transfer lo cerró en tests previos
 RESET ROLE;
 UPDATE periodos_escolares
 SET end_date = NULL, motivo_retiro = NULL
 WHERE id = 'aa000000-0000-4000-8000-000000000011';
--- limpiar transferencias previas del seed (idempotente en transacción)
 DELETE FROM transferencias
  WHERE caso_id IN ('aa000000-0000-4000-8000-000000000031', 'bb000000-0000-4000-8000-000000000032');
 
 SET LOCAL ROLE authenticated;
 
--- T62.1 iniciar como psicologo → deny
+-- T62.1 solicitar como psicologo → deny
 SELECT public.t64_login('a9000000-0000-4000-8000-0000000000e1');
 DO $$
 DECLARE r JSON;
 BEGIN
     r := public.initiate_transfer(
         'aa000000-0000-4000-8000-000000000031',
-        'b0000000-0000-4000-8000-00000000000b'
+        'a0000000-0000-4000-8000-00000000000a',
+        'b1000000-0000-4000-8000-000000000001',
+        'b2000000-0000-4000-8000-000000000001'
     );
     PERFORM public.t64_rec(
         'T62.1 initiate_transfer psicologo DENY',
         (r->>'success')::boolean IS FALSE
-        AND coalesce(r->>'error', '') ILIKE '%Director%',
+        AND coalesce(r->>'error', '') ILIKE '%solicitar transferencias%',
         r::text
     );
 END $$;
 
--- T62.1b iniciar como docente → deny
+-- T62.1b solicitar como docente → deny
 SELECT public.t64_login('a9000000-0000-4000-8000-0000000000f1');
 DO $$
 DECLARE r JSON;
 BEGIN
     r := public.initiate_transfer(
         'aa000000-0000-4000-8000-000000000031',
-        'b0000000-0000-4000-8000-00000000000b'
+        'a0000000-0000-4000-8000-00000000000a',
+        'b1000000-0000-4000-8000-000000000001',
+        'b2000000-0000-4000-8000-000000000001'
     );
     PERFORM public.t64_rec(
         'T62.1b initiate_transfer docente DENY',
         (r->>'success')::boolean IS FALSE
-        AND coalesce(r->>'error', '') ILIKE '%Director%',
+        AND coalesce(r->>'error', '') ILIKE '%solicitar transferencias%',
         r::text
     );
 END $$;
 
--- T62.2 iniciar a la misma institución → error
+-- T62.2 director A solicita hacia su propia IE (origen=destino) → error
 SELECT public.t64_login('a9000000-0000-4000-8000-0000000000d1');
 DO $$
 DECLARE r JSON;
 BEGIN
     r := public.initiate_transfer(
         'aa000000-0000-4000-8000-000000000031',
-        'a0000000-0000-4000-8000-00000000000a'
+        'a0000000-0000-4000-8000-00000000000a',
+        'a1000000-0000-4000-8000-000000000001',
+        'a2000000-0000-4000-8000-000000000002'
     );
     PERFORM public.t64_rec(
         'T62.2 initiate misma institución DENY',
@@ -464,45 +468,59 @@ BEGIN
     );
 END $$;
 
--- T62.2b director de otra IE no transfiere caso de A → deny
+-- T62.2b B (destino) solicita hacia A (origen) → ALLOW pending, SIN efecto en A
+SELECT public.t64_login('a9000000-0000-4000-8000-0000000000d3');
+DO $$
+DECLARE r JSON; tid UUID; n INT;
+BEGIN
+    r := public.initiate_transfer(
+        'aa000000-0000-4000-8000-000000000031',
+        'a0000000-0000-4000-8000-00000000000a',
+        'b1000000-0000-4000-8000-000000000001',
+        'b2000000-0000-4000-8000-000000000001',
+        'A'
+    );
+    PERFORM public.t64_rec(
+        'T62.2b director B solicita ALLOW (pending)',
+        (r->>'success')::boolean IS TRUE
+        AND coalesce(r->>'status', '') = 'pending',
+        r::text
+    );
+    tid := (r->>'transfer_id')::uuid;
+END $$;
+
+-- Verificaciones de efecto (sin RLS: postgres)
+RESET ROLE;
+DO $$
+DECLARE n INT; tid UUID;
+BEGIN
+    SELECT id INTO tid FROM transferencias
+     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031' AND status = 'pending' LIMIT 1;
+    PERFORM public.t64_rec(
+        'T62.2c status pending tras solicitar',
+        tid IS NOT NULL,
+        'tid=' || coalesce(tid::text, 'NULL')
+    );
+    SELECT count(*) INTO n FROM periodos_escolares
+     WHERE id = 'aa000000-0000-4000-8000-000000000011' AND end_date IS NULL;
+    PERFORM public.t64_rec('T62.2d período A intacto al solicitar', n = 1, 'open=' || n);
+    SELECT count(*) INTO n FROM transferencias
+     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031' AND status = 'pending';
+    PERFORM public.t64_rec('T62.2e exactamente una pending', n = 1, 'pending=' || n);
+END $$;
+
+SET LOCAL ROLE authenticated;
+
+-- T62.3 doble solicitud → bloqueada (índice único pending)
 SELECT public.t64_login('a9000000-0000-4000-8000-0000000000d3');
 DO $$
 DECLARE r JSON;
 BEGIN
     r := public.initiate_transfer(
         'aa000000-0000-4000-8000-000000000031',
-        'b0000000-0000-4000-8000-00000000000b'
-    );
-    PERFORM public.t64_rec(
-        'T62.2b director B no transfiere caso A DENY',
-        (r->>'success')::boolean IS FALSE,
-        r::text
-    );
-END $$;
-
--- T62.2c director A inicia correctamente A→B
-SELECT public.t64_login('a9000000-0000-4000-8000-0000000000d1');
-DO $$
-DECLARE r JSON;
-BEGIN
-    r := public.initiate_transfer(
-        'aa000000-0000-4000-8000-000000000031',
-        'b0000000-0000-4000-8000-00000000000b'
-    );
-    PERFORM public.t64_rec(
-        'T62.2c initiate director A ALLOW (pending)',
-        (r->>'success')::boolean IS TRUE,
-        r::text
-    );
-END $$;
-
--- T62.3 doble iniciación → bloqueada
-DO $$
-DECLARE r JSON;
-BEGIN
-    r := public.initiate_transfer(
-        'aa000000-0000-4000-8000-000000000031',
-        'b0000000-0000-4000-8000-00000000000b'
+        'a0000000-0000-4000-8000-00000000000a',
+        'b1000000-0000-4000-8000-000000000001',
+        'b2000000-0000-4000-8000-000000000001'
     );
     PERFORM public.t64_rec(
         'T62.3 doble initiate DENY',
@@ -512,27 +530,7 @@ BEGIN
     );
 END $$;
 
--- T62.4 aceptar como no-destino → deny (director A, destino es B)
-DO $$
-DECLARE r JSON; tid UUID;
-BEGIN
-    SELECT id INTO tid FROM transferencias
-     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031'
-       AND status = 'pending' LIMIT 1;
-    IF tid IS NULL THEN
-        PERFORM public.t64_rec('T62.4 accept director A DENY', false, 'no pending transfer');
-        RETURN;
-    END IF;
-    r := public.accept_transfer(tid, 'b1000000-0000-4000-8000-000000000001', 'b2000000-0000-4000-8000-000000000001', 'A');
-    PERFORM public.t64_rec(
-        'T62.4 accept director A (no destino) DENY',
-        (r->>'success')::boolean IS FALSE
-        AND coalesce(r->>'error', '') ILIKE '%destinadas a su institución%',
-        r::text
-    );
-END $$;
-
--- T62.4b aceptar como docente → deny
+-- T62.4 autorizar como docente → deny
 SELECT public.t64_login('a9000000-0000-4000-8000-0000000000f1');
 DO $$
 DECLARE r JSON; tid UUID;
@@ -540,85 +538,217 @@ BEGIN
     SELECT id INTO tid FROM transferencias
      WHERE caso_id = 'aa000000-0000-4000-8000-000000000031' AND status = 'pending' LIMIT 1;
     IF tid IS NULL THEN
-        PERFORM public.t64_rec('T62.4b accept docente DENY', false, 'no pending');
+        PERFORM public.t64_rec('T62.4 authorize docente DENY', false, 'no pending');
         RETURN;
     END IF;
-    r := public.accept_transfer(tid, 'b1000000-0000-4000-8000-000000000001', 'b2000000-0000-4000-8000-000000000001', 'A');
+    r := public.authorize_transfer(tid);
     PERFORM public.t64_rec(
-        'T62.4b accept docente DENY',
+        'T62.4 authorize docente DENY',
         (r->>'success')::boolean IS FALSE
-        AND coalesce(r->>'error', '') ILIKE '%Director%',
+        AND coalesce(r->>'error', '') ILIKE '%autorizar transferencias%',
         r::text
     );
 END $$;
 
--- T62.5 aceptar deja status=accepted y crea período destino
+-- T62.4b autorizar como director B (destino, no origen) → deny
 SELECT public.t64_login('a9000000-0000-4000-8000-0000000000d3');
-DO $$
-DECLARE r JSON; tid UUID; st TEXT; n INT;
-BEGIN
-    SELECT id INTO tid FROM transferencias
-     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031' AND status = 'pending' LIMIT 1;
-    IF tid IS NULL THEN
-        PERFORM public.t64_rec('T62.5 accept director B ALLOW', false, 'no pending');
-        RETURN;
-    END IF;
-    r := public.accept_transfer(tid, 'b1000000-0000-4000-8000-000000000001', 'b2000000-0000-4000-8000-000000000001', 'A');
-    PERFORM public.t64_rec(
-        'T62.5 accept director B ALLOW',
-        (r->>'success')::boolean IS TRUE,
-        r::text
-    );
-    SELECT status INTO st FROM transferencias WHERE id = tid;
-    PERFORM public.t64_rec('T62.5b status=accepted', st = 'accepted', 'status=' || st);
-    SELECT count(*) INTO n FROM periodos_escolares
-     WHERE student_id = 'aa000000-0000-4000-8000-000000000001'
-       AND institution_id = 'b0000000-0000-4000-8000-00000000000b'
-       AND end_date IS NULL;
-    PERFORM public.t64_rec('T62.5c período destino creado', n = 1, 'rows=' || n);
-END $$;
-
--- T62.6 aceptar status distinto de pending → error
 DO $$
 DECLARE r JSON; tid UUID;
 BEGIN
     SELECT id INTO tid FROM transferencias
-     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031' LIMIT 1;
+     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031' AND status = 'pending' LIMIT 1;
     IF tid IS NULL THEN
-        PERFORM public.t64_rec('T62.6 accept no-pending DENY', false, 'no transfer');
+        PERFORM public.t64_rec('T62.4b authorize director B DENY', false, 'no pending');
         RETURN;
     END IF;
-    r := public.accept_transfer(tid, 'b1000000-0000-4000-8000-000000000001', 'b2000000-0000-4000-8000-000000000001', 'A');
+    r := public.authorize_transfer(tid);
     PERFORM public.t64_rec(
-        'T62.6 accept no-pending DENY',
+        'T62.4b authorize director B (no origen) DENY',
+        (r->>'success')::boolean IS FALSE
+        AND coalesce(r->>'error', '') ILIKE '%origen%',
+        r::text
+    );
+END $$;
+
+-- T62.5 A rechaza → rejected, sin efectos en A
+SELECT public.t64_login('a9000000-0000-4000-8000-0000000000d1');
+DO $$
+DECLARE r JSON; tid UUID; st TEXT; n_open INT;
+BEGIN
+    SELECT id INTO tid FROM transferencias
+     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031' AND status = 'pending' LIMIT 1;
+    IF tid IS NULL THEN
+        PERFORM public.t64_rec('T62.5 reject director A ALLOW', false, 'no pending');
+        RETURN;
+    END IF;
+    r := public.reject_transfer(tid, 'No aplica traslado');
+    PERFORM public.t64_rec(
+        'T62.5 reject director A ALLOW',
+        (r->>'success')::boolean IS TRUE
+        AND coalesce(r->>'status', '') = 'rejected',
+        r::text
+    );
+    SELECT status INTO st FROM transferencias WHERE id = tid;
+    PERFORM public.t64_rec('T62.5b status=rejected', st = 'rejected', 'status=' || st);
+    SELECT count(*) INTO n_open FROM periodos_escolares
+     WHERE id = 'aa000000-0000-4000-8000-000000000011' AND end_date IS NULL;
+    PERFORM public.t64_rec('T62.5c rechazo no cierra período A', n_open = 1, 'open=' || n_open);
+END $$;
+
+-- T62.6 re-solicitar tras rejected → ALLOW (solo pending cuenta como activa)
+SELECT public.t64_login('a9000000-0000-4000-8000-0000000000d3');
+DO $$
+DECLARE r JSON;
+BEGIN
+    r := public.initiate_transfer(
+        'aa000000-0000-4000-8000-000000000031',
+        'a0000000-0000-4000-8000-00000000000a',
+        'b1000000-0000-4000-8000-000000000001',
+        'b2000000-0000-4000-8000-000000000001',
+        'A'
+    );
+    PERFORM public.t64_rec(
+        'T62.6 re-initiate tras rejected ALLOW',
+        (r->>'success')::boolean IS TRUE,
+        r::text
+    );
+END $$;
+
+-- T62.7 A autoriza → efectos completos (cierra A, crea B, transfiere responsable)
+SELECT public.t64_login('a9000000-0000-4000-8000-0000000000d1');
+DO $$
+DECLARE r JSON; tid UUID;
+BEGIN
+    SELECT id INTO tid FROM transferencias
+     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031' AND status = 'pending' LIMIT 1;
+    IF tid IS NULL THEN
+        PERFORM public.t64_rec('T62.7 authorize director A ALLOW', false, 'no pending');
+        RETURN;
+    END IF;
+    r := public.authorize_transfer(tid);
+    PERFORM public.t64_rec(
+        'T62.7 authorize director A ALLOW',
+        (r->>'success')::boolean IS TRUE
+        AND coalesce(r->>'status', '') = 'approved',
+        r::text
+    );
+END $$;
+
+-- Efectos verificados sin RLS (postgres)
+RESET ROLE;
+DO $$
+DECLARE tid UUID; st TEXT; n_closed INT; n_b INT; resp UUID;
+BEGIN
+    SELECT id INTO tid FROM transferencias
+     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031'
+       AND status = 'approved'
+     LIMIT 1;
+    IF tid IS NULL THEN
+        SELECT id INTO tid FROM transferencias
+         WHERE caso_id = 'aa000000-0000-4000-8000-000000000031'
+           AND authorized_at IS NOT NULL
+         ORDER BY authorized_at DESC NULLS LAST
+         LIMIT 1;
+    END IF;
+    SELECT status INTO st FROM transferencias WHERE id = tid;
+    PERFORM public.t64_rec('T62.7b status=approved', st = 'approved', 'status=' || coalesce(st, 'NULL'));
+    SELECT count(*) INTO n_closed FROM periodos_escolares
+     WHERE id = 'aa000000-0000-4000-8000-000000000011' AND end_date IS NOT NULL;
+    PERFORM public.t64_rec('T62.7c período A cerrado', n_closed = 1, 'closed=' || n_closed);
+    SELECT count(*) INTO n_b FROM periodos_escolares
+     WHERE student_id = 'aa000000-0000-4000-8000-000000000001'
+       AND institution_id = 'b0000000-0000-4000-8000-00000000000b'
+       AND end_date IS NULL
+       AND school_year = 2026;
+    PERFORM public.t64_rec('T62.7d período B creado', n_b = 1, 'rows=' || n_b);
+    SELECT current_responsible_id INTO resp FROM casos
+     WHERE id = 'aa000000-0000-4000-8000-000000000031';
+    PERFORM public.t64_rec(
+        'T62.7e responsable en B',
+        resp = 'a9000000-0000-4000-8000-0000000000d3',
+        'resp=' || coalesce(resp::text, 'NULL')
+    );
+END $$;
+
+SET LOCAL ROLE authenticated;
+
+-- T62.8 autorizar dos veces → deny (ya no pending)
+DO $$
+DECLARE r JSON; tid UUID;
+BEGIN
+    SELECT id INTO tid FROM transferencias
+     WHERE caso_id = 'aa000000-0000-4000-8000-000000000031'
+       AND status = 'approved'
+     LIMIT 1;
+    IF tid IS NULL THEN
+        PERFORM public.t64_rec('T62.8 authorize twice DENY', false, 'no approved transfer');
+        RETURN;
+    END IF;
+    r := public.authorize_transfer(tid);
+    PERFORM public.t64_rec(
+        'T62.8 authorize twice DENY',
+        (r->>'success')::boolean IS FALSE
+        AND coalesce(r->>'error', '') ILIKE '%pendientes%',
+        r::text
+    );
+    r := public.reject_transfer(tid, 'post');
+    PERFORM public.t64_rec(
+        'T62.8b reject tras approved DENY',
         (r->>'success')::boolean IS FALSE
         AND coalesce(r->>'error', '') ILIKE '%pendientes%',
         r::text
     );
 END $$;
 
--- T62.7 RLS: director A no ve transferencias de B (si las hay) / aislamiento básico
+-- T62.9 aislamiento: director A no ve transferencias pure de otras IEs
 SELECT public.t64_login('a9000000-0000-4000-8000-0000000000d1');
 DO $$
 DECLARE n INT;
 BEGIN
-    -- transferencia A→B es visible para A (origin); no debe ver transferencias pure de otras IE
     SELECT count(*) INTO n FROM transferencias
      WHERE origin_institution_id = 'b0000000-0000-4000-8000-00000000000b'
        AND destination_institution_id = 'c0000000-0000-4000-8000-00000000000c';
-    PERFORM public.t64_rec('T62.7 director A no ve transferencias B→C', n = 0, 'rows=' || n);
+    PERFORM public.t64_rec('T62.9 director A no ve transferencias B→C', n = 0, 'rows=' || n);
 END $$;
 
--- T62.8 auditoría transfer
+-- T62.10 auditoría A1
 RESET ROLE;
 DO $$
 DECLARE n INT;
 BEGIN
-    SELECT count(*) INTO n FROM auditoria WHERE action = 'transfer_initiated';
-    PERFORM public.t64_rec('T62.8 auditoría transfer_initiated', n >= 1, 'n=' || n);
-    SELECT count(*) INTO n FROM auditoria WHERE action = 'transfer_accepted';
-    PERFORM public.t64_rec('T62.8b auditoría transfer_accepted', n >= 1, 'n=' || n);
+    SELECT count(*) INTO n FROM auditoria WHERE action = 'transfer_requested';
+    PERFORM public.t64_rec('T62.10 auditoría transfer_requested', n >= 1, 'n=' || n);
+    SELECT count(*) INTO n FROM auditoria WHERE action = 'transfer_rejected';
+    PERFORM public.t64_rec('T62.10b auditoría transfer_rejected', n >= 1, 'n=' || n);
+    SELECT count(*) INTO n FROM auditoria WHERE action = 'transfer_authorized';
+    PERFORM public.t64_rec('T62.10c auditoría transfer_authorized', n >= 1, 'n=' || n);
 END $$;
+
+-- T62.11 restaurar seed A para T63/T64 (período A activo, sin período B)
+RESET ROLE;
+DELETE FROM periodos_escolares
+ WHERE student_id = 'aa000000-0000-4000-8000-000000000001'
+   AND institution_id = 'b0000000-0000-4000-8000-00000000000b';
+UPDATE periodos_escolares
+SET end_date = NULL, motivo_retiro = NULL, updated_at = NOW()
+WHERE id = 'aa000000-0000-4000-8000-000000000011';
+-- trigger estados: en_proceso → cerrado → inicio (si authorize pasó a en_proceso)
+UPDATE casos
+SET estado = 'cerrado', updated_at = NOW()
+WHERE id = 'aa000000-0000-4000-8000-000000000031' AND estado = 'en_proceso';
+UPDATE casos
+SET current_responsible_id = 'a9000000-0000-4000-8000-0000000000e1',
+    estado = 'inicio',
+    updated_at = NOW()
+WHERE id = 'aa000000-0000-4000-8000-000000000031';
+DELETE FROM caso_responsables_historial
+ WHERE caso_id = 'aa000000-0000-4000-8000-000000000031'
+   AND motivo_salida = 'transferencia';
+-- B5: cerrar período 2026 de seed antes de T64 (promoción 2025→2026 crea otro 2026)
+UPDATE periodos_escolares
+SET end_date = CURRENT_DATE, motivo_retiro = 'seed_pre_promocion', updated_at = NOW()
+WHERE id = 'aa000000-0000-4000-8000-000000000011';
+SELECT 1;
 
 -- ============================================================
 -- T63 — LICENCIAS

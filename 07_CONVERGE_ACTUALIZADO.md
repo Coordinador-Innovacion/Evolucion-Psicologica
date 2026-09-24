@@ -47,16 +47,19 @@ Inicio; primera Atención → En proceso; En proceso → Cerrado; reapertura Cer
 Histórica; edición solo 30 minutos con hora servidor; después bloqueada; cambios auditados.
 
 ### Transferencia
-Autorización correcta; historial previo congelado; Caso abierto continúa; origen solo consulta; destino gestiona nuevas acciones; auditoría completa.
+DC-007 (A1): B solicita → pending sin efecto en A; A autoriza → cierra A, crea B, transfiere responsabilidad; A rechaza → rejected sin efectos. Solo pending activa. Historial previo congelado; Caso abierto continúa; origen solo consulta; destino gestiona nuevas acciones; auditoría completa (`transfer_requested`/`transfer_authorized`/`transfer_rejected`).
 
 ### Licencias
-Códigos; inicio/fin; alerta 30 días; renovación como nuevo registro; vencida = NO cambia roles, solo bloquea nuevas atenciones psicológicas (DC-003); Global = acceso total; sesión activa no evade vencimiento.
+Códigos; inicio/fin; alerta 30 días; renovación como nuevo registro; vencida = NO cambia roles, solo bloquea nuevas atenciones psicológicas (DC-003); Global = acceso total; sesión activa no evade vencimiento. DC-009: aviso UI sin corte de sesión.
 
 ### Promoción
-Origen/destino visibles; prefill; preview; mapeo automático; último grado = Egreso; retirados excluidos; repetidores por excepción; lote idempotente; reanudación; doble ejecución bloqueada; excepciones auditadas; sin duplicados ni solapamientos.
+DC-010/011: PREPARAR→REVISAR→EJECUTAR; manual siempre; origen/destino visibles; prefill; preview; mapeo automático 6.º→1.º Sec; último grado 5.º Sec = Egreso; retirados excluidos; repetidores por excepción; lote idempotente; reanudación; doble ejecución bloqueada; excepciones auditadas; sin duplicados ni solapamientos.
+
+### Bootstrap Global
+DC-008: `claim_first_global` one-shot; sin contraseña hardcodeada; un solo Global.
 
 ### Seguridad
-Probar allow/deny por rol, institución, encuestas, aplicaciones, enlaces, DNI, estudiante no registrado y datos sensibles.
+Probar allow/deny por rol, institución, encuestas, aplicaciones, enlaces, DNI, estudiante no registrado y datos sensibles. B1–B4 en 049 (authz DEFINER, triggers estados, necesidades clínicas, delete con histórico).
 
 ### Concurrencia
 Probar:

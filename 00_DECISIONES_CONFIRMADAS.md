@@ -157,6 +157,84 @@ Reglas confirmadas:
 
 ---
 
+## DC-007 — Transferencias: B solicita → A autoriza (A1)
+
+**Tema:** Flujo de transferencia de estudiante entre instituciones.
+
+**Decisión vigente:**
+
+- Regla única: **B (destino) solicita → A (origen) autoriza o rechaza**.
+- `initiate_transfer` lo llama B (destino; no-global = propia institución) → status `pending`, **sin efecto inmediato en A**.
+- `authorize_transfer` lo llama A (origen) → cierra período A, crea período B, transfiere responsabilidad, status `approved`.
+- `reject_transfer` lo llama A → status `rejected`, sin efectos.
+- Solo `pending` cuenta como transferencia activa (índice único por caso).
+- Nivel, grado y sección destino se fijan al solicitar (columnas NOT NULL en períodos).
+- El flujo 019 (A inicia con efecto inmediato → B acepta) queda **SUPERSEDIDO**.
+
+**Reemplaza:** Flujo de 016/017/019 (`initiate` por A con efecto inmediato, `accept_transfer`).
+
+**Estado:** VIGENTE.
+
+**Impacto:** SPECIFY, TASKS, IMPLEMENT (048), pruebas T62/RLS8, CONVERGE.
+
+---
+
+## DC-008 — Bootstrap Global one-shot (A2)
+
+**Tema:** Primer usuario Global.
+
+**Decisión vigente:** Mecanismo one-shot `claim_first_global()`: si no existe ningún Global, promueve al usuario autenticado (signup normal con contraseña propia), se autodesactiva. Sin contraseña fija ni puerta trasera. Complementa DC-006 sin hardcodear credenciales permanentes.
+
+**Estado:** VIGENTE.
+
+**Impacto:** auth, roles, bootstrap, IMPLEMENT (049).
+
+---
+
+## DC-009 — Licencia: aviso menor, sin corte de sesión (A3)
+
+**Tema:** Comportamiento de UI ante licencia por vencer/vencida.
+
+**Decisión vigente:** Aviso pequeño superior (días restantes; si vencida, aviso de bloqueo de nuevas atenciones psicológicas). NO cierra sesión, NO cambia roles; bloqueo solo server-side. Ya alineado con DC-003/DC-004/DC-005.
+
+**Estado:** VIGENTE.
+
+**Impacto:** UI licencias, IMPLEMENT.
+
+---
+
+## DC-010 — Promoción PREPARAR → REVISAR → EJECUTAR (A4)
+
+**Tema:** Flujo de promoción masiva.
+
+**Decisión vigente:**
+
+- `prepare_promotion` crea lote `PREPARED` con preview en `counts`, **NO muta** datos definitivos.
+- `execute_promotion` solo ejecuta `PREPARED|RUNNING|FAILED|INTERRUPTED` (si no hay lote, auto-prepara vía `prepare_promotion` y ejecuta).
+- Flujo de UI: PREPARAR → REVISAR → EJECUTAR.
+
+**Estado:** VIGENTE.
+
+**Impacto:** SPECIFY promoción, TASKS, IMPLEMENT (049), UI wizard.
+
+---
+
+## DC-011 — Promoción manual; mapeo 6.º Prim→1.º Sec; egreso 5.º Sec (A5)
+
+**Tema:** Política de promoción.
+
+**Decisión vigente:**
+
+- Promoción **siempre manual** (sin cron automático).
+- 6.º Primaria → 1.º Secundaria vía `map_grade` (ya implementado).
+- 5.º Secundaria → egreso (se mantiene; SPECIFY contempla Secundario Primero–Quinto).
+
+**Estado:** VIGENTE.
+
+**Impacto:** SPECIFY promoción, IMPLEMENT, pruebas T64.
+
+---
+
 # PROCEDIMIENTO PARA NUEVAS DECISIONES
 
 Agregar cada nueva decisión con:

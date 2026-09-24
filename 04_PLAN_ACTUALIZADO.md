@@ -104,7 +104,7 @@ No parecer hoja de cálculo ni formulario externo gigante.
 Transiciones server-side. Cierre y reapertura auditados. Historial de responsables con desde/hasta. Atención verifica hora de servidor y ventana de 30 minutos.
 
 ## Transferencia
-Operación transaccional: validar autorización → registrar transferencia → actualizar responsabilidad operativa → fijar frontera temporal → mantener origen histórico → auditoría.
+Operación transaccional: B solicita (pending, sin efecto en A) → A autoriza/rechaza → al autorizar: actualizar responsabilidad operativa, fijar frontera temporal, mantener origen histórico, auditoría. Índice único solo sobre pending.
 
 ## Licencias
 `licencias`: institution_id, start_date, end_date, created_by, created_at.

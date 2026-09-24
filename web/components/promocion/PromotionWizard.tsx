@@ -10,16 +10,25 @@ interface Props {
   onComplete?: () => void;
 }
 
-type Step = "config" | "preview" | "confirm" | "result";
+type Step = "config" | "preview" | "prepare" | "confirm" | "result";
 
 export function PromotionWizard({ institutionId, onComplete }: Props) {
   const [step, setStep] = useState<Step>("config");
   const [originYear, setOriginYear] = useState<number | null>(null);
   const [destinationYear, setDestinationYear] = useState<number | null>(null);
+  const [idempotencyKey, setIdempotencyKey] = useState<string | null>(null);
+  const [prepared, setPrepared] = useState<{
+    batch_id: string;
+    status: string;
+    total_students?: number;
+    promoted?: number;
+    egreso?: number;
+    retired?: number;
+  } | null>(null);
 
   const { data: wizardData, loading: wizardLoading } = usePromotionWizard(institutionId);
   const { preview, fetchPreview } = usePromotionPreview();
-  const { result, loading: execLoading, error: execError, execute } = usePromotionExecution();
+  const { result, loading: execLoading, error: execError, prepare, execute } = usePromotionExecution();
 
   // T44: Prefill
   if (originYear === null && wizardData) {
@@ -33,9 +42,21 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
     setStep("preview");
   };
 
-  const handleConfirm = async () => {
+  // A4: PREPARAR crea lote PREPARED sin mutar datos definitivos
+  const handlePrepare = async () => {
     if (!originYear || !destinationYear) return;
-    const idempotencyKey = `${institutionId}-${originYear}-${destinationYear}-${Date.now()}`;
+    const key = `${institutionId}-${originYear}-${destinationYear}-${Date.now()}`;
+    setIdempotencyKey(key);
+    const prep = await prepare(institutionId, originYear, destinationYear, key);
+    if (prep) {
+      setPrepared(prep);
+      setStep("prepare");
+    }
+  };
+
+  // A4: EJECUTAR solo aplica el lote PREPARED
+  const handleConfirm = async () => {
+    if (!originYear || !destinationYear || !idempotencyKey) return;
     const res = await execute(institutionId, originYear, destinationYear, idempotencyKey);
     if (res) {
       setStep("result");
@@ -45,8 +66,9 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
 
   const handleResume = async () => {
     if (!wizardData?.existing_batch_id) return;
-    const idempotencyKey = `${institutionId}-${originYear}-${destinationYear}-resume`;
-    const res = await execute(institutionId, originYear!, destinationYear!, idempotencyKey);
+    const key = `${institutionId}-${originYear}-${destinationYear}-resume`;
+    setIdempotencyKey(key);
+    const res = await execute(institutionId, originYear!, destinationYear!, key);
     if (res) {
       setStep("result");
       onComplete?.();
@@ -189,13 +211,43 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
 
           <div className="flex gap-3">
             <button
-              onClick={() => setStep("confirm")}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm"
+              onClick={handlePrepare}
+              disabled={execLoading || !originYear || !destinationYear}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm disabled:opacity-50"
             >
-              Confirmar y ejecutar
+              {execLoading ? "Preparando..." : "Preparar"}
             </button>
             <button
               onClick={() => setStep("config")}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm"
+            >
+              Volver
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === "prepare" && prepared && (
+        <div className="space-y-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
+            <p className="text-sm text-blue-800 font-medium">
+              Lote PREPARED — sin cambios aplicados todavía
+            </p>
+            <p className="text-sm text-blue-700 mt-1">
+              Total: {prepared.total_students ?? preview?.total_students ?? 0} ·
+              Promovidos: {prepared.promoted ?? preview?.promoted ?? 0} ·
+              Egreso: {prepared.egreso ?? preview?.egreso ?? 0}
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setStep("confirm")}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm"
+            >
+              Revisar y ejecutar
+            </button>
+            <button
+              onClick={() => setStep("preview")}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm"
             >
               Volver
@@ -213,18 +265,19 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
             <p className="text-sm text-red-700 mt-1">
               Se cerrarán los períodos del año {originYear} y se crearán nuevos períodos para {destinationYear}.
               Los estudiantes en último grado serán marcados como egreso.
+              {prepared?.batch_id ? ` Lote: ${prepared.status}.` : ""}
             </p>
           </div>
           <div className="flex gap-3">
             <button
               onClick={handleConfirm}
-              disabled={execLoading}
+              disabled={execLoading || !idempotencyKey}
               className="px-4 py-2 bg-red-600 text-white rounded-md text-sm disabled:opacity-50"
             >
               {execLoading ? "Ejecutando..." : "Ejecutar promoción"}
             </button>
             <button
-              onClick={() => setStep("preview")}
+              onClick={() => setStep(prepared ? "prepare" : "preview")}
               className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm"
             >
               Volver
