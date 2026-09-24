@@ -73,6 +73,15 @@ DC-011 (A5): promoción siempre manual; `map_grade` 6.º Prim→1.º Sec; 5.º S
 ## Bootstrap Global
 DC-008 (A2): `claim_first_global()` one-shot; sin contraseña fija; se autodesactiva al primer Global.
 
+T67 (DC-012): la función **permanece en DB**; **REVOKE** desde `anon`/`authenticated` — la app no puede invocarla. Primer Global: **Supabase Dashboard** (propietario autorizado / vía de emergencia).
+
+## Registro docente (T67 / DC-012)
+- Público solo `docente` (045 + 050).
+- Código modular → `lookup_institution_by_code` (preview) → confirm I.E. → datos.
+- `handle_new_user` exige `institution_code` válido; set `institution_id` server-side.
+- `emailRedirectTo` = origin de la request (producción).
+- Recuperación: Supabase Auth estándar (`resetPasswordForEmail` / `updateUser`).
+
 ## Seguridad T65/T66
 - B1: authz en SECURITY DEFINER (`get_student_periods`, duplicados, familiares, encuestas).
 - B2: triggers máquina de estados (transferencias, casos, ventana 30 min atención).

@@ -60,13 +60,23 @@ export default function LoginPage() {
             Ingresar
           </button>
 
-          <div className="text-center text-sm">
-            <Link
-              href="/auth/registro"
-              className="text-blue-600 hover:text-blue-500"
-            >
-              ¿No tienes cuenta? Regístrate
-            </Link>
+          <div className="text-center text-sm space-y-2">
+            <div>
+              <Link
+                href="/auth/recuperar"
+                className="text-blue-600 hover:text-blue-500"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+            <div>
+              <Link
+                href="/auth/registro"
+                className="text-blue-600 hover:text-blue-500"
+              >
+                ¿No tienes cuenta? Regístrate
+              </Link>
+            </div>
           </div>
         </form>
       </div>

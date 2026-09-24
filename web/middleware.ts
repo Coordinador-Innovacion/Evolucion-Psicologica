@@ -5,7 +5,14 @@ export async function middleware(request: NextRequest) {
   const response = await updateSession(request);
 
   // Rutas públicas que no requieren autenticación
-  const publicPaths = ["/auth/login", "/auth/registro", "/auth/confirmacion", "/auth/callback"];
+  const publicPaths = [
+    "/auth/login",
+    "/auth/registro",
+    "/auth/confirmacion",
+    "/auth/callback",
+    "/auth/recuperar",
+    "/auth/nueva-clave",
+  ];
   const isPublicPath = publicPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   );

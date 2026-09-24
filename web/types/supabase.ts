@@ -1023,7 +1023,19 @@ export interface Database {
       };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      lookup_institution_by_code: {
+        Args: { p_code: string };
+        Returns: {
+          success: boolean;
+          error?: string;
+          institution_id?: string;
+          name?: string;
+          code?: string;
+          niveles?: string[];
+        };
+      };
+    };
     Enums: Record<string, never>;
   };
 }

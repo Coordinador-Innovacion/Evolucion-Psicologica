@@ -235,6 +235,28 @@ Reglas confirmadas:
 
 ---
 
+## DC-012 — T67: Registro docente con I.E. + cierre de bootstrap en app
+
+**Tema:** Registro público, institución y Global inicial.
+
+**Decisión vigente:**
+
+- Registro público **solo crea rol `docente`** (whitelist server-side).
+- Paso corto de **código modular** de I.E.: preview (nombre + niveles) → confirmación → datos del docente.
+- `institution_id` se resuelve **solo en backend** desde el código; no se confía en el cliente.
+- Código inexistente → **no se completa el registro**.
+- `claim_first_global()` **se mantiene en DB**; queda **fuera del alcance de la app** (REVOKE anon/authenticated).
+- El **primer Global** se crea/gestiona **administrativamente en Supabase Dashboard** (propietario autorizado; vía de emergencia).
+- Recuperación de contraseña: **estándar Supabase Auth** (`resetPasswordForEmail` + `updateUser`), sin sistema propio complejo.
+- **No eliminar** la cuenta docente existente (se conserva para pruebas).
+- Redirect de confirmación usa el **origin de la request** (producción), no localhost.
+
+**Estado:** VIGENTE.
+
+**Impacto:** auth, registro UI, migración 050, IMPLEMENT, TASKS.
+
+---
+
 # PROCEDIMIENTO PARA NUEVAS DECISIONES
 
 Agregar cada nueva decisión con:

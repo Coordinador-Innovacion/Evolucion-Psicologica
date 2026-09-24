@@ -77,5 +77,13 @@ T58 unit tests; T59 integración; T60 RLS; T61 Caso; T62 transferencia; T63 lice
 - B7: NO restaurar 016–018.
 - Actualizar 00_DECISIONES, 05/06/07; suite completa; reporte G.
 
+## T67 — AJUSTE FINAL AUTH/REGISTRO
+- Registro solo `docente`; código modular I.E. → preview → confirm → datos (050).
+- `institution_id` server-side; código inválido no completa signup.
+- `claim_first_global` fuera de la app (REVOKE); primer Global vía Supabase Dashboard.
+- Recuperación estándar Supabase Auth (`/auth/recuperar`, `/auth/nueva-clave`).
+- `emailRedirectTo` con origin dinámico (sin localhost).
+- Cuenta docente existente: NO eliminar.
+
 ## Orden recomendado
 Datos → constraints → seguridad → reglas → operaciones server-side → UI → pruebas → revisión quirúrgica.
