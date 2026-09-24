@@ -6,6 +6,9 @@ import { createClient } from "@/lib/supabase/client";
 import { CaseStatusBadge } from "@/components/casos/CaseStatusBadge";
 import { logClientError, toUserMessage } from "@/lib/errors";
 import type { CasoEstado } from "@/types/supabase";
+import { inputClasses } from "@/components/ui/field";
+import { Icon } from "@/components/ui/icons";
+import { EmptyState, ErrorBanner, LoadingScreen } from "@/components/ui/feedback";
 
 interface CaseListItem {
   id: string;
@@ -87,46 +90,19 @@ export default function CasesListPage() {
   }, [cases, search, estadoFilter]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-14">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Inicio
-              </Link>
-              <span className="text-sm text-gray-300">|</span>
-              <span className="text-sm font-medium text-gray-900">Casos</span>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="mx-auto max-w-5xl space-y-6">
+      <div>
+        <h1 className="text-xl font-semibold text-slate-900">Casos</h1>
+        <p className="mt-1 text-sm text-slate-500">
+          Seguimiento de casos y atenciones
+        </p>
+      </div>
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <h1 className="text-xl font-semibold text-gray-900">Casos</h1>
-          <div className="flex items-center gap-2">
-            {ESTADO_FILTERS.map((f) => (
-              <button
-                key={f.value}
-                type="button"
-                onClick={() => setEstadoFilter(f.value)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-full border transition-colors ${
-                  estadoFilter === f.value
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-600 border-gray-300 hover:bg-gray-50"
-                }`}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-sm">
+          <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+            <Icon name="search" className="h-4 w-4" />
+          </span>
           <label htmlFor="case-search" className="sr-only">
             Buscar por nombre o DNI
           </label>
@@ -136,61 +112,85 @@ export default function CasesListPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nombre o DNI del estudiante..."
-            className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className={`${inputClasses} pl-9`}
           />
         </div>
+        <div className="flex flex-wrap items-center gap-2">
+          {ESTADO_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              onClick={() => setEstadoFilter(f.value)}
+              className={`rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors ${
+                estadoFilter === f.value
+                  ? "border-indigo-600 bg-indigo-600 text-white shadow-sm"
+                  : "border-line bg-white text-slate-600 hover:bg-slate-50"
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
-        {loading && <p className="text-sm text-gray-500">Cargando casos...</p>}
+      {loading && <LoadingScreen label="Cargando casos..." />}
 
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
-            {error}
-          </div>
-        )}
+      {error && <ErrorBanner>{error}</ErrorBanner>}
 
-        {!loading && !error && filtered.length === 0 && (
-          <p className="text-sm text-gray-500">
-            No se encontraron casos{search ? " para la búsqueda" : ""}.
-          </p>
-        )}
+      {!loading && !error && filtered.length === 0 && (
+        <EmptyState
+          title={
+            search
+              ? "No se encontraron casos para la búsqueda."
+              : "No se encontraron casos."
+          }
+          description="Prueba con otro término o cambia el filtro de estado."
+        />
+      )}
 
-        {!loading && !error && filtered.length > 0 && (
-          <ul className="space-y-3">
-            {filtered.map((c) => (
-              <li key={c.id}>
-                <Link
-                  href={`/casos/${c.id}`}
-                  className="block bg-white rounded-lg shadow-sm border border-gray-200 p-4 hover:border-blue-300 transition-colors"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
-                        {c.estudiantes
-                          ? `${c.estudiantes.first_names} ${c.estudiantes.last_names}`
-                          : "Estudiante"}
-                        {c.estudiantes?.document_number && (
-                          <span className="ml-2 text-xs font-normal text-gray-500">
-                            DNI: {c.estudiantes.document_number}
-                          </span>
-                        )}
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1 truncate">
-                        {c.situation}
-                      </p>
-                      <p className="text-xs text-gray-400 mt-1">
-                        Abierto: {new Date(c.opened_at).toLocaleDateString("es-PE")} ·
-                        Actualizado:{" "}
-                        {new Date(c.updated_at).toLocaleString("es-PE")}
-                      </p>
-                    </div>
-                    <CaseStatusBadge estado={c.estado} />
-                  </div>
-                </Link>
-              </li>
-            ))}
-          </ul>
-        )}
-      </main>
+      {!loading && !error && filtered.length > 0 && (
+        <ul className="space-y-3">
+          {filtered.map((c) => (
+            <li key={c.id}>
+              <Link
+                href={`/casos/${c.id}`}
+                className="group flex items-start gap-4 rounded-xl border border-line bg-white p-5 shadow-card transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-pop"
+              >
+                <span className="mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+                  <Icon name="folder" className="h-5 w-5" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-slate-900">
+                    {c.estudiantes
+                      ? `${c.estudiantes.first_names} ${c.estudiantes.last_names}`
+                      : "Estudiante"}
+                    {c.estudiantes?.document_number && (
+                      <span className="ml-2 text-xs font-normal text-slate-500">
+                        DNI: {c.estudiantes.document_number}
+                      </span>
+                    )}
+                  </p>
+                  <p className="mt-1 truncate text-xs text-slate-500">
+                    {c.situation}
+                  </p>
+                  <p className="mt-1 text-xs text-slate-400">
+                    Abierto: {new Date(c.opened_at).toLocaleDateString("es-PE")} ·
+                    Actualizado:{" "}
+                    {new Date(c.updated_at).toLocaleString("es-PE")}
+                  </p>
+                </div>
+                <div className="flex shrink-0 items-center gap-2">
+                  <CaseStatusBadge estado={c.estado} />
+                  <Icon
+                    name="chevronRight"
+                    className="hidden h-4 w-4 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-indigo-500 sm:block"
+                  />
+                </div>
+              </Link>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

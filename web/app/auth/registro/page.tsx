@@ -14,7 +14,7 @@ type InstitutionPreview = {
 };
 
 const inputClass =
-  "mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
+  "mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500";
 
 export default function RegistroPage() {
   const router = useRouter();
@@ -68,22 +68,22 @@ export default function RegistroPage() {
 
   if (step === "ie") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
-          <div>
-            <h1 className="text-center text-3xl font-bold text-gray-900">
-              Evolución Psicológica
-            </h1>
-            <h2 className="mt-2 text-center text-sm text-gray-600">
-              Crear cuenta — Identifique su I.E.
-            </h2>
-          </div>
+      <div>
+        <h2 className="text-center text-lg font-semibold text-slate-900">
+          Crear cuenta — Identifique su I.E.
+        </h2>
+        <p className="mt-1 text-center text-sm text-slate-500">
+          Valida el código modular de tu institución educativa
+        </p>
 
-          <form onSubmit={handleLookup} className="mt-8 space-y-6">
+        <form
+          onSubmit={handleLookup}
+          className="mt-6 space-y-5 rounded-2xl border border-line bg-white p-6 shadow-card sm:p-8"
+        >
             <div>
               <label
                 htmlFor="institution_code"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-700"
               >
                 Código modular de la I.E.
               </label>
@@ -101,28 +101,28 @@ export default function RegistroPage() {
             </div>
 
             {lookupError && (
-              <p className="text-sm text-red-600" role="alert">
+              <p className="text-sm text-rose-600" role="alert">
                 {lookupError}
               </p>
             )}
 
             {preview && (
-              <div className="rounded-md border border-green-200 bg-green-50 p-4">
-                <p className="text-sm font-medium text-green-900">
+              <div className="rounded-md border border-emerald-200 bg-emerald-50 p-4">
+                <p className="text-sm font-medium text-emerald-900">
                   {preview.name}
                 </p>
-                <p className="mt-1 text-xs text-green-800">
+                <p className="mt-1 text-xs text-emerald-800">
                   Código: {preview.code}
                 </p>
                 {preview.niveles.length > 0 && (
-                  <p className="mt-1 text-xs text-green-800">
+                  <p className="mt-1 text-xs text-emerald-800">
                     Nivel: {preview.niveles.join(" · ")}
                   </p>
                 )}
                 <button
                   type="button"
                   onClick={confirmInstitution}
-                  className="mt-3 w-full px-4 py-2 bg-blue-600 text-white rounded-md text-sm hover:bg-blue-700"
+                  className="mt-3 w-full rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-indigo-700"
                 >
                   Confirmar I.E. y continuar
                 </button>
@@ -133,46 +133,42 @@ export default function RegistroPage() {
               <button
                 type="submit"
                 disabled={looking || !code.trim()}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+                className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 disabled:opacity-50"
               >
                 {looking ? "Validando…" : "Buscar I.E."}
               </button>
             )}
           </form>
 
-          <div className="text-center text-sm">
-            <Link
-              href="/auth/login"
-              className="text-blue-600 hover:text-blue-500"
-            >
-              ¿Ya tienes cuenta? Inicia sesión
-            </Link>
-          </div>
+        <div className="mt-5 text-center text-sm">
+          <Link
+            href="/auth/login"
+            className="font-medium text-indigo-600 hover:text-indigo-700"
+          >
+            ¿Ya tienes cuenta? Inicia sesión
+          </Link>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h1 className="text-center text-3xl font-bold text-gray-900">
-            Evolución Psicológica
-          </h1>
-          <h2 className="mt-2 text-center text-sm text-gray-600">
-            Crear cuenta docente — {preview?.name}
-          </h2>
-          <button
-            type="button"
-            onClick={backToIe}
-            className="mt-2 text-center text-xs text-blue-600 hover:text-blue-500"
-          >
-            ← Cambiar I.E.
-          </button>
-        </div>
+    <div>
+      <h2 className="text-center text-lg font-semibold text-slate-900">
+        Crear cuenta docente — {preview?.name}
+      </h2>
+      <button
+        type="button"
+        onClick={backToIe}
+        className="mt-2 text-center text-xs font-medium text-indigo-600 hover:text-indigo-700"
+      >
+        ← Cambiar I.E.
+      </button>
 
-        <form className="mt-8 space-y-6" action={signUp}>
+      <form
+        className="mt-6 space-y-5 rounded-2xl border border-line bg-white p-6 shadow-card sm:p-8"
+        action={signUp}
+      >
           <input
             type="hidden"
             name="institution_code"
@@ -182,7 +178,7 @@ export default function RegistroPage() {
             <div>
               <label
                 htmlFor="full_name"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-700"
               >
                 Nombre completo
               </label>
@@ -199,7 +195,7 @@ export default function RegistroPage() {
             <div>
               <label
                 htmlFor="document_number"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-700"
               >
                 Número de documento
               </label>
@@ -215,7 +211,7 @@ export default function RegistroPage() {
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-700"
               >
                 Correo electrónico
               </label>
@@ -233,7 +229,7 @@ export default function RegistroPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-700"
               >
                 Contraseña
               </label>
@@ -252,20 +248,19 @@ export default function RegistroPage() {
 
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             Crear cuenta
           </button>
         </form>
 
-        <div className="text-center text-sm">
-          <Link
-            href="/auth/login"
-            className="text-blue-600 hover:text-blue-500"
-          >
-            ¿Ya tienes cuenta? Inicia sesión
-          </Link>
-        </div>
+      <div className="mt-5 text-center text-sm">
+        <Link
+          href="/auth/login"
+          className="font-medium text-indigo-600 hover:text-indigo-700"
+        >
+          ¿Ya tienes cuenta? Inicia sesión
+        </Link>
       </div>
     </div>
   );

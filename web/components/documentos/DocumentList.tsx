@@ -34,15 +34,15 @@ export function DocumentList({
   onRemove,
 }: Props) {
   if (loading) {
-    return <p className="text-sm text-gray-500">Cargando documentos...</p>;
+    return <p className="text-sm text-slate-500">Cargando documentos...</p>;
   }
 
   if (error) {
-    return <p className="text-sm text-red-600">{error}</p>;
+    return <p className="text-sm text-rose-600">{error}</p>;
   }
 
   if (documents.length === 0) {
-    return <p className="text-sm text-gray-500">No hay documentos adjuntos.</p>;
+    return <p className="text-sm text-slate-500">No hay documentos adjuntos.</p>;
   }
 
   return (
@@ -50,15 +50,15 @@ export function DocumentList({
       {documents.map((doc) => (
         <div
           key={doc.id}
-          className="flex items-center justify-between p-3 bg-gray-50 rounded-md border border-gray-200"
+          className="flex items-center justify-between p-3 bg-slate-50 rounded-md border border-slate-200"
         >
           <div className="flex items-center gap-3 min-w-0">
             <span className="text-lg">{getFileIcon(doc.mime_type)}</span>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">
+              <p className="text-sm font-medium text-slate-900 truncate">
                 {doc.filename}
               </p>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-500">
                 {formatSize(doc.size_bytes)} &middot;{" "}
                 {new Date(doc.created_at).toLocaleDateString("es-PE")}
                 {doc.description && ` \u2014 ${doc.description}`}
@@ -69,7 +69,7 @@ export function DocumentList({
             <button
               type="button"
               onClick={() => onDownload(doc)}
-              className="text-sm text-blue-600 hover:text-blue-800"
+              className="text-sm text-indigo-600 hover:text-indigo-800"
             >
               Descargar
             </button>
@@ -77,7 +77,7 @@ export function DocumentList({
               <button
                 type="button"
                 onClick={() => onRemove(doc)}
-                className="text-sm text-red-600 hover:text-red-800"
+                className="text-sm text-rose-600 hover:text-rose-800"
               >
                 Eliminar
               </button>

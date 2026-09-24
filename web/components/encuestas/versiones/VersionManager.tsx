@@ -95,19 +95,19 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
         );
       case "published":
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
             Publicada
           </span>
         );
       case "closed":
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800">
             Cerrada
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-600">
             {status}
           </span>
         );
@@ -116,7 +116,7 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
 
   if (loading) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-slate-500">
         Cargando versiones...
       </div>
     );
@@ -128,11 +128,11 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
   return (
     <div>
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+        <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-md text-sm text-rose-700">
           {error}
           <button
             onClick={() => setError(null)}
-            className="ml-2 text-red-500 hover:text-red-700"
+            className="ml-2 text-rose-500 hover:text-rose-700"
           >
             ✕
           </button>
@@ -141,10 +141,10 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-slate-900">
             Versiones de &ldquo;{surveyTitle}&rdquo;
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-500">
             {versions.length} {versions.length === 1 ? "versión" : "versiones"}{" "}
             registradas
           </p>
@@ -152,7 +152,7 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
         <div className="flex space-x-3">
           <Link
             href={`/encuestas/${surveyId}/aplicaciones`}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
           >
             Aplicaciones
           </Link>
@@ -160,14 +160,14 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
             <button
               onClick={handleCreateNewVersion}
               disabled={creating}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50"
             >
               {creating ? "Creando..." : "Nueva versión"}
             </button>
           )}
           <Link
             href={`/encuestas/${surveyId}/constructor`}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
           >
             Volver al constructor
           </Link>
@@ -175,11 +175,11 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
       </div>
 
       {versions.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-          <p className="text-gray-500">No hay versiones registradas.</p>
+        <div className="text-center py-12 bg-white rounded-lg border border-slate-200">
+          <p className="text-slate-500">No hay versiones registradas.</p>
           <Link
             href={`/encuestas/${surveyId}/constructor`}
-            className="mt-2 text-blue-600 hover:text-blue-500 text-sm"
+            className="mt-2 text-indigo-600 hover:text-indigo-500 text-sm"
           >
             Ir al constructor para agregar contenido
           </Link>
@@ -193,12 +193,12 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
             >
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-3">
-                  <span className="text-sm font-medium text-gray-900">
+                  <span className="text-sm font-medium text-slate-900">
                     Versión {version.version_number}
                   </span>
                   {getStatusBadge(version.status)}
                 </div>
-                <div className="mt-1 flex items-center space-x-4 text-xs text-gray-400">
+                <div className="mt-1 flex items-center space-x-4 text-xs text-slate-400">
                   <span>
                     Creada:{" "}
                     {new Date(version.created_at).toLocaleDateString("es-PE")}
@@ -229,20 +229,20 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
                   <>
                     <Link
                       href={`/encuestas/${surveyId}/constructor`}
-                      className="text-xs text-blue-600 hover:text-blue-500 px-3 py-1.5 rounded border border-blue-200 hover:border-blue-300"
+                      className="text-xs text-indigo-600 hover:text-indigo-500 px-3 py-1.5 rounded border border-indigo-200 hover:border-indigo-300"
                     >
                       Editar
                     </Link>
                     <Link
                       href={`/encuestas/${surveyId}/preview`}
-                      className="text-xs text-gray-600 hover:text-gray-800 px-3 py-1.5 rounded border border-gray-200 hover:border-gray-300"
+                      className="text-xs text-slate-600 hover:text-slate-800 px-3 py-1.5 rounded border border-slate-200 hover:border-slate-300"
                     >
                       Vista previa
                     </Link>
                     <button
                       onClick={() => handlePublish(version.id)}
                       disabled={publishing === version.id}
-                      className="text-xs text-white bg-green-600 hover:bg-green-700 px-3 py-1.5 rounded disabled:opacity-50"
+                      className="text-xs text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded disabled:opacity-50"
                     >
                       {publishing === version.id
                         ? "Publicando..."
@@ -253,7 +253,7 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
                 {version.status === "published" && (
                   <Link
                     href={`/encuestas/${surveyId}/preview?version=${version.id}`}
-                    className="text-xs text-gray-600 hover:text-gray-800 px-3 py-1.5 rounded border border-gray-200 hover:border-gray-300"
+                    className="text-xs text-slate-600 hover:text-slate-800 px-3 py-1.5 rounded border border-slate-200 hover:border-slate-300"
                   >
                     Ver
                   </Link>

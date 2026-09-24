@@ -101,7 +101,7 @@ export function ConstructorContent({ surveyId }: Props) {
   if (loading) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Cargando encuesta...</p>
+        <p className="text-slate-500">Cargando encuesta...</p>
       </div>
     );
   }
@@ -109,10 +109,10 @@ export function ConstructorContent({ surveyId }: Props) {
   if (error && !survey) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600 mb-4">{error}</p>
+        <p className="text-rose-600 mb-4">{error}</p>
         <Link
           href="/encuestas"
-          className="text-blue-600 hover:text-blue-500 text-sm"
+          className="text-indigo-600 hover:text-indigo-500 text-sm"
         >
           Volver a encuestas
         </Link>
@@ -132,7 +132,7 @@ export function ConstructorContent({ surveyId }: Props) {
       <div className="mb-6">
         <Link
           href="/encuestas"
-          className="text-sm text-gray-500 hover:text-gray-700"
+          className="text-sm text-slate-500 hover:text-slate-700"
         >
           ← Volver a encuestas
         </Link>
@@ -150,18 +150,18 @@ export function ConstructorContent({ surveyId }: Props) {
                   if (e.key === "Enter") handleSaveTitle();
                   if (e.key === "Escape") setEditingTitle(false);
                 }}
-                className="text-2xl font-bold text-gray-900 border-0 border-b-2 border-blue-500 focus:ring-0 focus:outline-none bg-transparent p-0"
+                className="text-2xl font-bold text-slate-900 border-0 border-b-2 border-indigo-500 focus:ring-0 focus:outline-none bg-transparent p-0"
                 autoFocus
               />
               <button
                 onClick={handleSaveTitle}
-                className="text-sm text-blue-600 hover:text-blue-500"
+                className="text-sm text-indigo-600 hover:text-indigo-500"
               >
                 Guardar
               </button>
               <button
                 onClick={() => setEditingTitle(false)}
-                className="text-sm text-gray-500 hover:text-gray-700"
+                className="text-sm text-slate-500 hover:text-slate-700"
               >
                 Cancelar
               </button>
@@ -169,16 +169,16 @@ export function ConstructorContent({ surveyId }: Props) {
           ) : (
             <h1
               onClick={handleStartEditTitle}
-              className="text-2xl font-bold text-gray-900 cursor-pointer hover:text-blue-600"
+              className="text-2xl font-bold text-slate-900 cursor-pointer hover:text-indigo-600"
               title="Clic para editar título"
             >
               {survey.title}
             </h1>
           )}
           {survey.description && (
-            <p className="mt-1 text-sm text-gray-500">{survey.description}</p>
+            <p className="mt-1 text-sm text-slate-500">{survey.description}</p>
           )}
-          <div className="mt-2 flex items-center space-x-4 text-xs text-gray-400">
+          <div className="mt-2 flex items-center space-x-4 text-xs text-slate-400">
             <span>
               Versión {survey.version_number} ({survey.status})
             </span>
@@ -191,7 +191,7 @@ export function ConstructorContent({ surveyId }: Props) {
               {totalQuestions === 1 ? "pregunta" : "preguntas"}
             </span>
             {saving && (
-              <span className="text-blue-500 animate-pulse">
+              <span className="text-indigo-500 animate-pulse">
                 Guardando...
               </span>
             )}
@@ -201,19 +201,19 @@ export function ConstructorContent({ surveyId }: Props) {
         <div className="ml-4 flex items-center space-x-2">
           <Link
             href={`/encuestas/${surveyId}/preview`}
-            className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
           >
             Vista previa
           </Link>
           <Link
             href={`/encuestas/${surveyId}/versiones`}
-            className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
           >
             Versiones
           </Link>
           <Link
             href={`/encuestas/${surveyId}/aplicaciones`}
-            className="px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
           >
             Aplicaciones
           </Link>
@@ -221,7 +221,7 @@ export function ConstructorContent({ surveyId }: Props) {
             <button
               onClick={handlePublish}
               disabled={publishing || totalQuestions === 0}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
               title={
                 totalQuestions === 0
                   ? "Debe tener al menos una pregunta para publicar"
@@ -235,11 +235,11 @@ export function ConstructorContent({ surveyId }: Props) {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+        <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-md text-sm text-rose-700">
           {error}
           <button
             onClick={() => setError(null)}
-            className="ml-2 text-red-500 hover:text-red-700"
+            className="ml-2 text-rose-500 hover:text-rose-700"
           >
             ✕
           </button>
@@ -247,7 +247,7 @@ export function ConstructorContent({ surveyId }: Props) {
       )}
 
       {survey.status === "published" && (
-        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
+        <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-md text-sm text-emerald-700">
           Esta versión está publicada y es inmutable. Para realizar cambios,
           cree una nueva versión desde la gestión de versiones.
         </div>
@@ -307,7 +307,7 @@ export function ConstructorContent({ surveyId }: Props) {
           <button
             onClick={addSection}
             disabled={saving}
-            className="w-full py-3 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors disabled:opacity-50"
+            className="w-full py-3 border-2 border-dashed border-slate-300 rounded-lg text-sm text-slate-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors disabled:opacity-50"
           >
             + Agregar sección
           </button>

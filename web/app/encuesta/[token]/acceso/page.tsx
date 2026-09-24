@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { logClientError, toUserMessage } from "@/lib/errors";
+import { Icon } from "@/components/ui/icons";
+import { LoadingScreen } from "@/components/ui/feedback";
 
 interface SurveySection {
   id: string;
@@ -78,31 +80,23 @@ export default function AccesoPage({
   }, [token]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-gray-500">Cargando encuesta...</p>
-        </div>
-      </div>
-    );
+    return <LoadingScreen label="Cargando encuesta..." />;
   }
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center px-4">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              No se puede acceder
-            </h2>
-            <p className="text-sm text-red-600 mb-4">{error}</p>
-            <Link
-              href={`/encuesta/${token}`}
-              className="text-sm text-blue-600 hover:text-blue-500"
-            >
-              Volver al inicio de acceso
-            </Link>
-          </div>
+      <div className="flex min-h-[60vh] items-center justify-center px-4">
+        <div className="w-full max-w-md rounded-2xl border border-line bg-white p-8 text-center shadow-card">
+          <h2 className="text-lg font-semibold text-slate-900">
+            No se puede acceder
+          </h2>
+          <p className="mt-2 text-sm text-rose-600">{error}</p>
+          <Link
+            href={`/encuesta/${token}`}
+            className="mt-5 inline-flex items-center gap-2 rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            Volver al inicio de acceso
+          </Link>
         </div>
       </div>
     );
@@ -116,42 +110,43 @@ export default function AccesoPage({
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center">
-              <h1 className="text-lg font-semibold text-gray-900">
-                {data.survey_title}
-              </h1>
-            </div>
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <span>
-                {data.sections.length}{" "}
-                {data.sections.length === 1 ? "sección" : "secciones"}
-              </span>
-              <span>
-                {totalQuestions}{" "}
-                {totalQuestions === 1 ? "pregunta" : "preguntas"}
-              </span>
-            </div>
+    <div className="min-h-screen bg-canvas">
+      <header className="sticky top-0 z-10 border-b border-line bg-white/90 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between gap-4 px-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-950/20">
+              <Icon name="pulse" className="h-5 w-5" />
+            </span>
+            <h1 className="truncate text-base font-semibold text-slate-900">
+              {data.survey_title}
+            </h1>
+          </div>
+          <div className="flex shrink-0 items-center gap-3 text-xs text-slate-500">
+            <span className="hidden rounded-full bg-indigo-50 px-2.5 py-1 font-medium text-indigo-700 sm:inline">
+              {data.sections.length}{" "}
+              {data.sections.length === 1 ? "sección" : "secciones"}
+            </span>
+            <span className="hidden rounded-full bg-slate-100 px-2.5 py-1 font-medium text-slate-600 sm:inline">
+              {totalQuestions}{" "}
+              {totalQuestions === 1 ? "pregunta" : "preguntas"}
+            </span>
           </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <p className="text-sm text-gray-600 mb-4">
+      <main className="mx-auto max-w-3xl space-y-4 px-4 py-8 sm:px-6">
+        <div className="rounded-2xl border border-line bg-white p-6 shadow-card">
+          <p className="mb-4 text-sm text-slate-600">
             Encuesta cargada correctamente. Revise las secciones a continuación
             y cuando esté listo, comience a responder.
           </p>
-          <div className="grid grid-cols-2 gap-4 text-xs text-gray-400 mb-4">
+          <div className="mb-4 grid grid-cols-2 gap-4 text-xs text-slate-400">
             <div>
-              <span className="font-medium text-gray-600">Aplicación:</span>{" "}
+              <span className="font-medium text-slate-600">Aplicación:</span>{" "}
               {appParam ? appParam.slice(0, 8) + "..." : "—"}
             </div>
             <div>
-              <span className="font-medium text-gray-600">Tipo:</span>{" "}
+              <span className="font-medium text-slate-600">Tipo:</span>{" "}
               {typeParam === "student" ? "Estudiante" : "Docente"}
             </div>
           </div>
@@ -162,7 +157,7 @@ export default function AccesoPage({
                 `/encuesta/${token}/responder?app=${appParam || ""}&type=${typeParam || ""}&name=${encodeURIComponent(nameParam)}`
               )
             }
-            className="w-full py-2 px-4 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700"
+            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
           >
             Comenzar encuesta
           </button>
@@ -172,13 +167,13 @@ export default function AccesoPage({
           {data.sections.map((section, idx) => (
             <div
               key={section.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+              className="rounded-2xl border border-line bg-white p-6 shadow-card"
             >
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              <h3 className="mb-1 text-sm font-semibold text-slate-900">
                 Sección {idx + 1}: {section.title}
               </h3>
               {section.description && (
-                <p className="text-xs text-gray-500 mb-3">
+                <p className="mb-3 text-xs text-slate-500">
                   {section.description}
                 </p>
               )}
@@ -186,15 +181,15 @@ export default function AccesoPage({
                 {section.questions.map((q) => (
                   <div
                     key={q.id}
-                    className="border-l-2 border-blue-200 pl-3"
+                    className="border-l-2 border-indigo-200 pl-3"
                   >
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-700">{q.label}</span>
+                      <span className="text-sm text-slate-700">{q.label}</span>
                       {q.is_required && (
-                        <span className="text-red-500 text-xs">*</span>
+                        <span className="text-xs text-rose-500">*</span>
                       )}
                     </div>
-                    <p className="text-xs text-gray-400 mt-0.5">
+                    <p className="mt-0.5 text-xs text-slate-400">
                       Tipo: {q.question_type}
                     </p>
                   </div>

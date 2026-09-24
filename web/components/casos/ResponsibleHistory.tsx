@@ -82,18 +82,18 @@ export function ResponsibleHistory({ caseId, currentResponsibleId }: Props) {
   }, [caseId, currentResponsibleId]);
 
   if (loading) {
-    return <p className="text-sm text-gray-500">Cargando historial de responsables...</p>;
+    return <p className="text-sm text-slate-500">Cargando historial de responsables...</p>;
   }
 
   if (error) {
-    return <p className="text-sm text-red-600">{error}</p>;
+    return <p className="text-sm text-rose-600">{error}</p>;
   }
 
   return (
     <div className="space-y-3">
       <div className="text-sm">
-        <span className="font-medium text-gray-700">Responsable actual: </span>
-        <span className="text-gray-600">
+        <span className="font-medium text-slate-700">Responsable actual: </span>
+        <span className="text-slate-600">
           {currentResponsibleId
             ? currentName ?? "Usuario responsable"
             : "Sin responsable asignado"}
@@ -101,22 +101,22 @@ export function ResponsibleHistory({ caseId, currentResponsibleId }: Props) {
       </div>
 
       {rows.length === 0 ? (
-        <p className="text-sm text-gray-500">Sin registros previos de responsables.</p>
+        <p className="text-sm text-slate-500">Sin registros previos de responsables.</p>
       ) : (
-        <ul className="divide-y divide-gray-100">
+        <ul className="divide-y divide-slate-100">
           {rows.map((row) => (
             <li key={row.id} className="py-2 flex items-start justify-between gap-3 text-sm">
               <div>
-                <p className="font-medium text-gray-800">
+                <p className="font-medium text-slate-800">
                   {row.responsible_name ?? "Usuario responsable"}
                 </p>
-                <p className="text-xs text-gray-500 mt-0.5">
+                <p className="text-xs text-slate-500 mt-0.5">
                   Desde: {new Date(row.desde).toLocaleString("es-PE")}
                   {row.hasta && ` — Hasta: ${new Date(row.hasta).toLocaleString("es-PE")}`}
                 </p>
               </div>
               {!row.hasta && (
-                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
                   Activo
                 </span>
               )}

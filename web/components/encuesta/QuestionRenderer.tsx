@@ -23,14 +23,14 @@ export function QuestionRenderer({
 
   const labelBlock = (
     <div className="mb-2">
-      <label className="block text-sm font-medium text-gray-900">
+      <label className="block text-sm font-medium text-slate-900">
         {question.label}
         {question.is_required && (
-          <span className="text-red-500 ml-1">*</span>
+          <span className="text-rose-500 ml-1">*</span>
         )}
       </label>
       {question.description && (
-        <p className="mt-0.5 text-xs text-gray-500">{question.description}</p>
+        <p className="mt-0.5 text-xs text-slate-500">{question.description}</p>
       )}
     </div>
   );
@@ -53,7 +53,7 @@ export function QuestionRenderer({
             disabled={disabled}
             maxLength={cfg?.max_length || 255}
             placeholder={cfg?.placeholder || ""}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
+            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50"
           />
         </div>
       );
@@ -72,9 +72,9 @@ export function QuestionRenderer({
             maxLength={cfg?.max_length || 2000}
             rows={4}
             placeholder={cfg?.placeholder || ""}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50 resize-y"
+            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50 resize-y"
           />
-          <p className="mt-1 text-xs text-gray-400 text-right">
+          <p className="mt-1 text-xs text-slate-400 text-right">
             {((value as string) || "").length}/{cfg?.max_length || 2000}
           </p>
         </div>
@@ -90,8 +90,8 @@ export function QuestionRenderer({
                 key={opt.id}
                 className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
                   value === opt.id
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
+                    ? "border-indigo-500 bg-indigo-50"
+                    : "border-slate-200 hover:border-slate-300"
                 } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <input
@@ -101,9 +101,9 @@ export function QuestionRenderer({
                   checked={value === opt.id}
                   onChange={() => onChange(opt.id)}
                   disabled={disabled}
-                  className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                  className="h-4 w-4 text-indigo-600 border-slate-300 focus:ring-indigo-500"
                 />
-                <span className="ml-3 text-sm text-gray-700">{opt.label}</span>
+                <span className="ml-3 text-sm text-slate-700">{opt.label}</span>
               </label>
             ))}
           </div>
@@ -121,8 +121,8 @@ export function QuestionRenderer({
                 key={opt.id}
                 className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
                   selected.includes(opt.id)
-                    ? "border-blue-500 bg-blue-50"
-                    : "border-gray-200 hover:border-gray-300"
+                    ? "border-indigo-500 bg-indigo-50"
+                    : "border-slate-200 hover:border-slate-300"
                 } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 <input
@@ -136,9 +136,9 @@ export function QuestionRenderer({
                     onChange(next);
                   }}
                   disabled={disabled}
-                  className="h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="h-4 w-4 text-indigo-600 border-slate-300 rounded focus:ring-indigo-500"
                 />
-                <span className="ml-3 text-sm text-gray-700">{opt.label}</span>
+                <span className="ml-3 text-sm text-slate-700">{opt.label}</span>
               </label>
             ))}
           </div>
@@ -154,8 +154,8 @@ export function QuestionRenderer({
             <label
               className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors flex-1 justify-center ${
                 value === true
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
+                  ? "border-indigo-500 bg-indigo-50"
+                  : "border-slate-200 hover:border-slate-300"
               } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <input
@@ -164,17 +164,17 @@ export function QuestionRenderer({
                 checked={value === true}
                 onChange={() => onChange(true)}
                 disabled={disabled}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                className="h-4 w-4 text-indigo-600 border-slate-300 focus:ring-indigo-500"
               />
-              <span className="ml-2 text-sm font-medium text-gray-700">
+              <span className="ml-2 text-sm font-medium text-slate-700">
                 Sí
               </span>
             </label>
             <label
               className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors flex-1 justify-center ${
                 value === false
-                  ? "border-blue-500 bg-blue-50"
-                  : "border-gray-200 hover:border-gray-300"
+                  ? "border-indigo-500 bg-indigo-50"
+                  : "border-slate-200 hover:border-slate-300"
               } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               <input
@@ -183,9 +183,9 @@ export function QuestionRenderer({
                 checked={value === false}
                 onChange={() => onChange(false)}
                 disabled={disabled}
-                className="h-4 w-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+                className="h-4 w-4 text-indigo-600 border-slate-300 focus:ring-indigo-500"
               />
-              <span className="ml-2 text-sm font-medium text-gray-700">
+              <span className="ml-2 text-sm font-medium text-slate-700">
                 No
               </span>
             </label>
@@ -219,7 +219,7 @@ export function QuestionRenderer({
             min={cfg?.min ?? undefined}
             max={cfg?.max ?? undefined}
             step={cfg?.decimal_places ? Math.pow(10, -cfg.decimal_places) : 1}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
+            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50"
           />
         </div>
       );
@@ -233,7 +233,7 @@ export function QuestionRenderer({
             value={(value as string) || ""}
             onChange={(e) => onChange(e.target.value || null)}
             disabled={disabled}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-50"
+            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 disabled:bg-slate-50"
           />
         </div>
       );
@@ -258,8 +258,8 @@ export function QuestionRenderer({
                 disabled={disabled}
                 className={`flex-1 py-3 border rounded-lg text-sm font-medium transition-colors ${
                   value === step
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
-                    : "border-gray-200 text-gray-600 hover:border-gray-300"
+                    ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                    : "border-slate-200 text-slate-600 hover:border-slate-300"
                 } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {step}
@@ -267,8 +267,8 @@ export function QuestionRenderer({
             ))}
           </div>
           <div className="flex justify-between mt-1 px-1">
-            <span className="text-xs text-gray-400">{minLabel}</span>
-            <span className="text-xs text-gray-400">{maxLabel}</span>
+            <span className="text-xs text-slate-400">{minLabel}</span>
+            <span className="text-xs text-slate-400">{maxLabel}</span>
           </div>
         </div>
       );
@@ -297,8 +297,8 @@ export function QuestionRenderer({
                   disabled={disabled}
                   className={`px-4 py-2 border rounded-full text-sm font-medium transition-colors ${
                     selected.includes(opt.id)
-                      ? "border-blue-500 bg-blue-50 text-blue-700"
-                      : "border-gray-200 text-gray-600 hover:border-gray-300"
+                      ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                      : "border-slate-200 text-slate-600 hover:border-slate-300"
                   } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
                 >
                   {opt.label}
@@ -321,8 +321,8 @@ export function QuestionRenderer({
                 disabled={disabled}
                 className={`px-4 py-2 border rounded-full text-sm font-medium transition-colors ${
                   value === opt.id
-                    ? "border-blue-500 bg-blue-50 text-blue-700"
-                    : "border-gray-200 text-gray-600 hover:border-gray-300"
+                    ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                    : "border-slate-200 text-slate-600 hover:border-slate-300"
                 } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
               >
                 {opt.label}
@@ -337,7 +337,7 @@ export function QuestionRenderer({
       return (
         <div className={widthClass}>
           {labelBlock}
-          <p className="text-sm text-gray-400 italic">
+          <p className="text-sm text-slate-400 italic">
             Tipo de pregunta no soportado: {type}
           </p>
         </div>

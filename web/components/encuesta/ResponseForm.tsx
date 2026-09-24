@@ -4,6 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { useSurveyResponse } from "@/hooks/useSurveyResponse";
 import { QuestionRenderer } from "@/components/encuesta/QuestionRenderer";
+import { Icon } from "@/components/ui/icons";
+import { LoadingScreen } from "@/components/ui/feedback";
 
 interface Props {
   token: string;
@@ -33,31 +35,25 @@ export function ResponseForm({
   const [completing, setCompleting] = useState(false);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Cargando encuesta...</p>
-      </div>
-    );
+    return <LoadingScreen label="Cargando encuesta..." />;
   }
 
   if (error || completed) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center px-4">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              {completed ? "Encuesta completada" : "Error"}
-            </h2>
-            <p className="text-sm text-gray-500 mb-4">
-              {error || "Ya completaste esta encuesta."}
-            </p>
-            <Link
-              href={`/encuesta/${token}`}
-              className="text-sm text-blue-600 hover:text-blue-500"
-            >
-              Volver al inicio
-            </Link>
-          </div>
+      <div className="flex min-h-[60vh] items-center justify-center bg-canvas px-4">
+        <div className="w-full max-w-md rounded-2xl border border-line bg-white p-8 text-center shadow-card">
+          <h2 className="text-lg font-semibold text-slate-900">
+            {completed ? "Encuesta completada" : "Error"}
+          </h2>
+          <p className="mt-2 text-sm text-slate-500">
+            {error || "Ya completaste esta encuesta."}
+          </p>
+          <Link
+            href={`/encuesta/${token}`}
+            className="mt-5 inline-flex items-center gap-2 rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            Volver al inicio
+          </Link>
         </div>
       </div>
     );
@@ -65,16 +61,14 @@ export function ResponseForm({
 
   if (sections.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center px-4">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              Sin secciones
-            </h2>
-            <p className="text-sm text-gray-500">
-              Esta encuesta no tiene secciones configuradas.
-            </p>
-          </div>
+      <div className="flex min-h-[60vh] items-center justify-center bg-canvas px-4">
+        <div className="w-full max-w-md rounded-2xl border border-line bg-white p-8 text-center shadow-card">
+          <h2 className="text-lg font-semibold text-slate-900">
+            Sin secciones
+          </h2>
+          <p className="mt-2 text-sm text-slate-500">
+            Esta encuesta no tiene secciones configuradas.
+          </p>
         </div>
       </div>
     );
@@ -93,60 +87,62 @@ export function ResponseForm({
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-14">
-            <div className="flex items-center space-x-4">
-              <Link
-                href={`/encuesta/${token}`}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Encuesta
-              </Link>
-              <span className="text-sm text-gray-300">|</span>
-              <span className="text-sm font-medium text-gray-900 truncate max-w-xs">
+    <div className="min-h-screen bg-canvas">
+      <header className="sticky top-0 z-10 border-b border-line bg-white/90 backdrop-blur">
+        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between gap-4 px-4 sm:px-6">
+          <div className="flex min-w-0 items-center gap-3">
+            <Link
+              href={`/encuesta/${token}`}
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-md shadow-indigo-950/20"
+              title="Volver al inicio de la encuesta"
+            >
+              <Icon name="pulse" className="h-5 w-5" />
+            </Link>
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-slate-900">
                 Sección {currentSectionIndex + 1}/{sections.length}
-              </span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-xs text-gray-400 hidden sm:inline">
+              </p>
+              <p className="truncate text-xs text-slate-500">
                 {respondentName}
-              </span>
-              <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                <div
-                  className="bg-blue-600 h-1.5 rounded-full transition-all duration-300"
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <span className="text-xs text-gray-500">{progress}%</span>
-              {saving && (
-                <span className="text-xs text-amber-500 animate-pulse">
-                  Guardando...
-                </span>
-              )}
+              </p>
             </div>
           </div>
+          <div className="flex shrink-0 items-center gap-3">
+            {saving && (
+              <span className="hidden animate-pulse text-xs font-medium text-amber-600 sm:inline">
+                Guardando...
+              </span>
+            )}
+            <div className="h-2 w-24 overflow-hidden rounded-full bg-slate-200 sm:w-32">
+              <div
+                className="h-full rounded-full bg-indigo-600 transition-all duration-300"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <span className="w-9 text-right text-xs font-semibold tabular-nums text-slate-600">
+              {progress}%
+            </span>
+          </div>
         </div>
-      </nav>
+      </header>
 
-      <main className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
+      <main className="mx-auto max-w-3xl space-y-6 px-4 py-8 sm:px-6">
+        <div className="rounded-2xl border border-line bg-white p-6 shadow-card">
+          <h2 className="text-lg font-semibold text-slate-900">
             {currentSection.title}
           </h2>
           {currentSection.description && (
-            <p className="mt-1 text-sm text-gray-500">
+            <p className="mt-1 text-sm text-slate-500">
               {currentSection.description}
             </p>
           )}
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-4">
           {currentSection.questions.map((question) => (
             <div
               key={question.id}
-              className="bg-white rounded-lg shadow-sm border border-gray-200 p-6"
+              className="rounded-2xl border border-line bg-white p-6 shadow-card"
             >
               <QuestionRenderer
                 question={question}
@@ -157,12 +153,12 @@ export function ResponseForm({
           ))}
         </div>
 
-        <div className="flex justify-between items-center mt-8 mb-12">
+        <div className="mb-12 flex flex-wrap items-center justify-between gap-4">
           <button
             type="button"
             onClick={() => goToSection(currentSectionIndex - 1)}
             disabled={isFirstSection}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             ← Anterior
           </button>
@@ -173,12 +169,12 @@ export function ResponseForm({
                 key={idx}
                 type="button"
                 onClick={() => goToSection(idx)}
-                className={`w-3 h-3 rounded-full transition-colors ${
+                className={`h-3 w-3 rounded-full transition-colors ${
                   idx === currentSectionIndex
-                    ? "bg-blue-600"
+                    ? "bg-indigo-600"
                     : idx < currentSectionIndex
-                    ? "bg-green-400"
-                    : "bg-gray-300"
+                    ? "bg-emerald-400"
+                    : "bg-slate-300"
                 }`}
                 title={`Sección ${idx + 1}`}
               />
@@ -190,7 +186,7 @@ export function ResponseForm({
               type="button"
               onClick={() => setShowConfirmComplete(true)}
               disabled={!areRequiredAnswered()}
-              className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Finalizar encuesta
             </button>
@@ -198,7 +194,7 @@ export function ResponseForm({
             <button
               type="button"
               onClick={() => goToSection(currentSectionIndex + 1)}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+              className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700"
             >
               Continuar →
             </button>
@@ -207,12 +203,12 @@ export function ResponseForm({
       </main>
 
       {showConfirmComplete && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-line bg-white p-6 shadow-pop">
+            <h3 className="mb-2 text-lg font-semibold text-slate-900">
               ¿Finalizar encuesta?
             </h3>
-            <p className="text-sm text-gray-500 mb-6">
+            <p className="mb-6 text-sm text-slate-500">
               {areRequiredAnswered()
                 ? "Todas las preguntas obligatorias están respondidas. Una vez finalizada, no podrá modificar sus respuestas."
                 : "Hay preguntas obligatorias sin responder. Debe completarlas antes de finalizar."}
@@ -221,7 +217,7 @@ export function ResponseForm({
               <button
                 type="button"
                 onClick={() => setShowConfirmComplete(false)}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
               >
                 Cancelar
               </button>
@@ -229,7 +225,7 @@ export function ResponseForm({
                 type="button"
                 onClick={handleComplete}
                 disabled={!areRequiredAnswered() || completing}
-                className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {completing ? "Finalizando..." : "Sí, finalizar"}
               </button>

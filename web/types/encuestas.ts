@@ -48,6 +48,7 @@ export interface SurveyListItem {
   created_at: string;
   version_count: number;
   published_versions: number;
+  institution_name?: string | null;
 }
 
 export interface SurveyVersionItem {

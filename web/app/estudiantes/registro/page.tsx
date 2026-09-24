@@ -5,6 +5,8 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/useUser";
 import { logClientError, toUserMessage } from "@/lib/errors";
+import { buttonClass } from "@/components/ui/button";
+import { LoadingScreen, RestrictedAccess } from "@/components/ui/feedback";
 
 export default function RegistroEstudiantePage() {
   const { profile, loading: profileLoading } = useUser();
@@ -100,134 +102,78 @@ export default function RegistroEstudiantePage() {
   };
 
   if (profileLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Cargando...</p>
-      </div>
-    );
+    return <LoadingScreen label="Cargando..." />;
   }
 
   if (!isPsychologist) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center px-4">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              Acceso restringido
-            </h2>
-            <p className="text-sm text-gray-500 mb-4">
-              Solo el Psicólogo puede registrar estudiantes.
-            </p>
-            <Link
-              href="/"
-              className="text-sm text-blue-600 hover:text-blue-500"
-            >
-              Volver al inicio
-            </Link>
-          </div>
-        </div>
-      </div>
+      <RestrictedAccess message="Solo el Psicólogo puede registrar estudiantes." />
     );
   }
 
   if (saved) {
     return (
-      <div className="min-h-screen bg-gray-50">
-        <nav className="bg-white shadow">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
-              <div className="flex items-center space-x-8">
-                <Link href="/" className="text-xl font-bold text-gray-900">
-                  Evolución Psicológica
-                </Link>
-                <span className="text-sm text-gray-400">
-                  Registro de estudiante
-                </span>
-              </div>
-            </div>
+      <div className="mx-auto max-w-2xl space-y-6">
+        <div className="rounded-2xl border border-line bg-white p-8 text-center shadow-card">
+          <span className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-emerald-100 text-xl text-emerald-600">
+            ✓
+          </span>
+          <h2 className="text-lg font-semibold text-slate-900">
+            Estudiante registrado
+          </h2>
+          <p className="mt-2 text-sm text-slate-500">
+            <strong>
+              {firstName} {lastName}
+            </strong>{" "}
+            ha sido registrado con DNI {dni}.
+          </p>
+          <p className="mt-1 text-xs text-slate-400">
+            El estudiante ya puede acceder a la encuesta mediante su DNI.
+          </p>
+          <div className="mt-6 flex flex-wrap justify-center gap-3">
+            <button
+              onClick={() => {
+                setSaved(false);
+                setSavedId(null);
+                setDni("");
+                setFirstName("");
+                setLastName("");
+                setBirthDate("");
+                setFound(false);
+                setSearchError(null);
+              }}
+              className={buttonClass("secondary", "md")}
+            >
+              Registrar otro
+            </button>
+            <Link href="/" className={buttonClass("primary", "md")}>
+              Volver al inicio
+            </Link>
           </div>
-        </nav>
-        <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-green-600 text-xl">✓</span>
-            </div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              Estudiante registrado
-            </h2>
-            <p className="text-sm text-gray-500 mb-2">
-              <strong>
-                {firstName} {lastName}
-              </strong>{" "}
-              ha sido registrado con DNI {dni}.
+          {savedId && (
+            <p className="mt-4 text-xs text-slate-400">
+              ID del estudiante: {savedId}
             </p>
-            <p className="text-xs text-gray-400 mb-6">
-              El estudiante ya puede acceder a la encuesta mediante su DNI.
-            </p>
-            <div className="flex justify-center space-x-3">
-              <button
-                onClick={() => {
-                  setSaved(false);
-                  setSavedId(null);
-                  setDni("");
-                  setFirstName("");
-                  setLastName("");
-                  setBirthDate("");
-                  setFound(false);
-                  setSearchError(null);
-                }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Registrar otro
-              </button>
-              <Link
-                href="/"
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
-              >
-                Volver al inicio
-              </Link>
-            </div>
-            {savedId && (
-              <p className="mt-4 text-xs text-gray-400">
-                ID del estudiante: {savedId}
-              </p>
-            )}
-          </div>
-        </main>
+          )}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <Link href="/" className="text-xl font-bold text-gray-900">
-                Evolución Psicológica
-              </Link>
-              <span className="text-sm text-gray-400">
-                Registro de estudiante
-              </span>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
+    <div className="mx-auto max-w-2xl space-y-6">
+        <div>
+          <h1 className="text-xl font-semibold text-slate-900">
             Registro mínimo de estudiante
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-500">
             Datos mínimos obligatorios para habilitar el acceso del estudiante a
             encuestas.
           </p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-sm font-semibold text-gray-900 mb-4">
+        <div className="rounded-xl border border-line bg-white p-6 shadow-card">
+          <h2 className="text-sm font-semibold text-slate-900 mb-4">
             1. Buscar por DNI
           </h2>
           <form onSubmit={handleSearch} className="flex space-x-3">
@@ -235,7 +181,7 @@ export default function RegistroEstudiantePage() {
               type="text"
               value={dni}
               onChange={(e) => setDni(e.target.value)}
-              className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="flex-1 px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
               placeholder="Número de DNI"
               inputMode="numeric"
               pattern="[0-9]*"
@@ -244,7 +190,7 @@ export default function RegistroEstudiantePage() {
             <button
               type="submit"
               disabled={searching || !dni.trim()}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50"
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50"
             >
               {searching ? "Buscando..." : "Buscar"}
             </button>
@@ -255,8 +201,8 @@ export default function RegistroEstudiantePage() {
           )}
 
           {found && (
-            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
-              <p className="text-sm text-green-700">
+            <div className="mt-3 p-3 bg-emerald-50 border border-emerald-200 rounded-md">
+              <p className="text-sm text-emerald-700">
                 Estudiante encontrado: <strong>{firstName} {lastName}</strong> (DNI: {dni})
               </p>
             </div>
@@ -264,28 +210,28 @@ export default function RegistroEstudiantePage() {
         </div>
 
         {found ? (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-4">
+          <div className="rounded-xl border border-line bg-white p-6 shadow-card">
+            <h2 className="text-sm font-semibold text-slate-900 mb-4">
               Datos del estudiante
             </h2>
             <div className="space-y-3">
               <div>
-                <label className="block text-xs font-medium text-gray-500">
+                <label className="block text-xs font-medium text-slate-500">
                   Nombres
                 </label>
-                <p className="text-sm text-gray-900">{firstName}</p>
+                <p className="text-sm text-slate-900">{firstName}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500">
+                <label className="block text-xs font-medium text-slate-500">
                   Apellidos
                 </label>
-                <p className="text-sm text-gray-900">{lastName}</p>
+                <p className="text-sm text-slate-900">{lastName}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500">
+                <label className="block text-xs font-medium text-slate-500">
                   Documento
                 </label>
-                <p className="text-sm text-gray-900">
+                <p className="text-sm text-slate-900">
                   {documentType}: {dni}
                 </p>
               </div>
@@ -293,27 +239,27 @@ export default function RegistroEstudiantePage() {
             <div className="mt-6">
               <Link
                 href="/"
-                className="text-sm text-blue-600 hover:text-blue-500"
+                className="text-sm text-indigo-600 hover:text-indigo-500"
               >
                 El estudiante ya puede acceder a encuestas.
               </Link>
             </div>
           </div>
         ) : dni && !searching ? (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-sm font-semibold text-gray-900 mb-4">
+          <div className="rounded-xl border border-line bg-white p-6 shadow-card">
+            <h2 className="text-sm font-semibold text-slate-900 mb-4">
               2. Registrar datos mínimos
             </h2>
             <form onSubmit={handleRegister}>
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-slate-700">
                     Tipo de documento *
                   </label>
                   <select
                     value={documentType}
                     onChange={(e) => setDocumentType(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                   >
                     <option value="DNI">DNI</option>
                     <option value="CE">Carné de Extranjería</option>
@@ -322,97 +268,96 @@ export default function RegistroEstudiantePage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-slate-700">
                     Número de documento *
                   </label>
                   <input
                     type="text"
                     value={dni}
                     disabled
-                    className="mt-1 block w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-sm"
+                    className="mt-1 block w-full px-3 py-2 border border-slate-200 rounded-md bg-slate-50 text-sm"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-slate-700">
                     Nombres completos *
                   </label>
                   <input
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Nombres del estudiante"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-slate-700">
                     Apellidos completos *
                   </label>
                   <input
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     placeholder="Apellidos del estudiante"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">
+                  <label className="block text-sm font-medium text-slate-700">
                     Fecha de nacimiento *
                   </label>
                   <input
                     type="date"
                     value={birthDate}
                     onChange={(e) => setBirthDate(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                     required
                   />
                 </div>
               </div>
 
               {saveError && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+                <div className="mt-4 p-3 bg-rose-50 border border-rose-200 rounded-md text-sm text-rose-700">
                   {saveError}
                 </div>
               )}
 
               <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setDni("");
-                    setFirstName("");
-                    setLastName("");
-                    setBirthDate("");
-                    setFound(false);
-                    setSearchError(null);
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={
-                    saving ||
-                    !firstName.trim() ||
-                    !lastName.trim() ||
-                    !birthDate
-                  }
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 border border-transparent rounded-md hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? "Registrando..." : "Registrar estudiante"}
-                </button>
+            <button
+              type="button"
+              onClick={() => {
+                setDni("");
+                setFirstName("");
+                setLastName("");
+                setBirthDate("");
+                setFound(false);
+                setSearchError(null);
+              }}
+              className={buttonClass("secondary", "md")}
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={
+                saving ||
+                !firstName.trim() ||
+                !lastName.trim() ||
+                !birthDate
+              }
+              className={buttonClass("primary", "md", saving ? "opacity-50" : "")}
+            >
+              {saving ? "Registrando..." : "Registrar estudiante"}
+            </button>
               </div>
             </form>
           </div>
         ) : null}
-      </main>
     </div>
   );
 }

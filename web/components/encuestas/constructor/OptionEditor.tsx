@@ -32,8 +32,8 @@ export function OptionEditor({
   };
 
   return (
-    <div className="space-y-2 ml-8 border-l-2 border-gray-100 pl-4">
-      <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide">
+    <div className="space-y-2 ml-8 border-l-2 border-slate-100 pl-4">
+      <label className="block text-xs font-medium text-slate-500 uppercase tracking-wide">
         Opciones
       </label>
       {options.map((opt, idx) => (
@@ -41,7 +41,7 @@ export function OptionEditor({
           <button
             onClick={() => handleMoveUp(idx)}
             disabled={idx === 0}
-            className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs"
+            className="text-slate-400 hover:text-slate-600 disabled:opacity-30 text-xs"
             title="Mover arriba"
           >
             ▲
@@ -49,7 +49,7 @@ export function OptionEditor({
           <button
             onClick={() => handleMoveDown(idx)}
             disabled={idx === options.length - 1}
-            className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs"
+            className="text-slate-400 hover:text-slate-600 disabled:opacity-30 text-xs"
             title="Mover abajo"
           >
             ▼
@@ -58,11 +58,11 @@ export function OptionEditor({
             type="text"
             value={opt.label}
             onChange={(e) => onUpdate(opt.id, e.target.value)}
-            className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+            className="flex-1 px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
           />
           <button
             onClick={() => onDelete(opt.id)}
-            className="text-red-400 hover:text-red-600 text-xs"
+            className="text-rose-400 hover:text-rose-600 text-xs"
             title="Eliminar opción"
           >
             ✕

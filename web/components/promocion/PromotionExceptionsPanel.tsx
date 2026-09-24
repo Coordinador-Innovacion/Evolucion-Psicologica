@@ -96,37 +96,37 @@ export function PromotionExceptionsPanel({ batchId, onComplete }: Props) {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4">
+    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-gray-900">Excepciones de promoción</h3>
+        <h3 className="text-sm font-semibold text-slate-900">Excepciones de promoción</h3>
         <button
           onClick={fetchPending}
           disabled={loading}
-          className="text-sm text-blue-600 hover:text-blue-800"
+          className="text-sm text-indigo-600 hover:text-indigo-800"
         >
           {loading ? "Cargando..." : "Cargar pendientes"}
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-700 mb-4">
+        <div className="bg-rose-50 border border-rose-200 rounded-md p-3 text-sm text-rose-700 mb-4">
           {error}
         </div>
       )}
 
       {actions.length > 0 && (
         <div className="space-y-3">
-          <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-md">
+          <div className="max-h-48 overflow-y-auto border border-slate-200 rounded-md">
             {actions.map((a) => (
               <div
                 key={a.id}
-                className={`p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 ${
-                  selectedAction === a.id ? "bg-blue-50" : ""
+                className={`p-3 border-b border-slate-100 cursor-pointer hover:bg-slate-50 ${
+                  selectedAction === a.id ? "bg-indigo-50" : ""
                 }`}
                 onClick={() => setSelectedAction(a.id)}
               >
                 <div className="text-sm font-medium">{a.student_name}</div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-slate-500">
                   Resultado automático: {a.automatic_result}
                 </div>
               </div>
@@ -134,15 +134,15 @@ export function PromotionExceptionsPanel({ batchId, onComplete }: Props) {
           </div>
 
           {selectedAction && (
-            <div className="space-y-3 border-t border-gray-200 pt-3">
+            <div className="space-y-3 border-t border-slate-200 pt-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
                   Resultado final
                 </label>
                 <select
                   value={finalResult}
                   onChange={(e) => setFinalResult(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
                 >
                   <option value="promoted">Promovido</option>
                   <option value="retained">Repetidor</option>
@@ -150,21 +150,21 @@ export function PromotionExceptionsPanel({ batchId, onComplete }: Props) {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 mb-1">
                   Motivo
                 </label>
                 <textarea
                   value={motivo}
                   onChange={(e) => setMotivo(e.target.value)}
                   rows={2}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+                  className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
                   placeholder="Motivo de la excepción..."
                 />
               </div>
               <button
                 onClick={handleApplyException}
                 disabled={submitting || !motivo.trim()}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm disabled:opacity-50"
+                className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm disabled:opacity-50"
               >
                 {submitting ? "Aplicando..." : "Aplicar excepción"}
               </button>
@@ -174,7 +174,7 @@ export function PromotionExceptionsPanel({ batchId, onComplete }: Props) {
       )}
 
       {!loading && actions.length === 0 && !error && (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-slate-500">
           No hay acciones pendientes para excepcionar.
         </p>
       )}

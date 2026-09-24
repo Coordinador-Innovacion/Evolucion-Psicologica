@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/useUser";
 import { canAccessDocuments } from "@/components/documentos/StudentDocumentsPanel";
@@ -13,6 +12,11 @@ import {
   type PeriodPreset,
 } from "@/lib/analytics/period";
 import type { CasoEstado } from "@/types/supabase";
+import {
+  ErrorBanner,
+  LoadingScreen,
+  RestrictedAccess,
+} from "@/components/ui/feedback";
 
 const OPS_ROLES = [
   "global",
@@ -22,8 +26,6 @@ const OPS_ROLES = [
   "psicologo",
   "docente",
 ] as const;
-
-const COORD_ROLES = ["global", "director", "admin_ie", "coordinador"] as const;
 
 const PRESETS: PeriodPreset[] = [
   "this_month",
@@ -116,7 +118,7 @@ async function loadPeriodos(dateFilter: DateFilter): Promise<PeriodoRow[]> {
 }
 
 const ACCENT_STYLES: Record<MetricCard["accent"], string> = {
-  blue: "border-blue-200 bg-gradient-to-br from-blue-50 to-white",
+  blue: "border-indigo-200 bg-gradient-to-br from-indigo-50 to-white",
   amber: "border-amber-200 bg-gradient-to-br from-amber-50 to-white",
   emerald: "border-emerald-200 bg-gradient-to-br from-emerald-50 to-white",
   violet: "border-violet-200 bg-gradient-to-br from-violet-50 to-white",
@@ -125,7 +127,7 @@ const ACCENT_STYLES: Record<MetricCard["accent"], string> = {
 };
 
 const ACCENT_TEXT: Record<MetricCard["accent"], string> = {
-  blue: "text-blue-700",
+  blue: "text-indigo-700",
   amber: "text-amber-700",
   emerald: "text-emerald-700",
   violet: "text-violet-700",
@@ -145,7 +147,7 @@ function CaseDistributionBar({
   const total = inicio + enProceso + cerrado;
   if (total <= 0) {
     return (
-      <p className="text-sm text-gray-500">Sin casos en este período.</p>
+      <p className="text-sm text-slate-500">Sin casos en este período.</p>
     );
   }
   const pct = (n: number) => Math.max(2, Math.round((n / total) * 100));
@@ -157,7 +159,7 @@ function CaseDistributionBar({
         aria-label="Distribución de casos por estado"
       >
         <div
-          className="bg-blue-500 transition-all"
+          className="bg-indigo-500 transition-all"
           style={{ width: `${pct(inicio)}%` }}
         />
         <div
@@ -169,9 +171,9 @@ function CaseDistributionBar({
           style={{ width: `${pct(cerrado)}%` }}
         />
       </div>
-      <div className="flex flex-wrap gap-3 text-xs text-gray-600">
+      <div className="flex flex-wrap gap-3 text-xs text-slate-600">
         <span className="inline-flex items-center gap-1.5">
-          <span className="inline-block h-2 w-2 rounded-full bg-blue-500" />
+          <span className="inline-block h-2 w-2 rounded-full bg-indigo-500" />
           Inicio ({inicio})
         </span>
         <span className="inline-flex items-center gap-1.5">
@@ -291,33 +293,12 @@ export default function AnaliticaPage() {
   }, [authorized, dateFilter, includeDocs, reload]);
 
   if (profileLoading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <p className="text-gray-500">Cargando...</p>
-      </div>
-    );
+    return <LoadingScreen label="Cargando..." />;
   }
 
   if (!authorized) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center px-4">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
-              Acceso restringido
-            </h2>
-            <p className="text-sm text-gray-500 mb-4">
-              La analítica operativa está disponible para roles del sistema.
-            </p>
-            <Link
-              href="/"
-              className="text-sm text-blue-600 hover:text-blue-500"
-            >
-              Volver al inicio
-            </Link>
-          </div>
-        </div>
-      </div>
+      <RestrictedAccess message="La analítica operativa está disponible para roles del sistema." />
     );
   }
 
@@ -389,54 +370,26 @@ export default function AnaliticaPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <nav className="bg-white/90 backdrop-blur border-b border-slate-200 sticky top-0 z-10">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-14">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Inicio
-              </Link>
-              <span className="text-sm text-gray-300">|</span>
-              <span className="text-sm font-medium text-gray-900">
-                Analítica
-              </span>
-            </div>
-            <div className="flex items-center space-x-4 text-sm">
-              {(COORD_ROLES as readonly string[]).includes(profile.role) && (
-                <Link
-                  href="/coordinador"
-                  className="text-gray-600 hover:text-gray-900"
-                >
-                  Coordinación
-                </Link>
-              )}
-              <button
-                type="button"
-                onClick={() => setReload((v) => v + 1)}
-                className="text-blue-600 hover:text-blue-800"
-              >
-                Actualizar
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+    <div className="mx-auto max-w-6xl space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1 className="text-xl font-semibold text-slate-900">
             Analítica operativa
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-500">
             Conteos de uso del sistema. Sin contenido clínico. El alcance lo
             determina el rol y la institución (RLS).
             {isDocente && " Acceso de consulta: solo lectura."}
           </p>
         </div>
+        <button
+          type="button"
+          onClick={() => setReload((v) => v + 1)}
+          className="rounded-lg border border-line bg-white px-3.5 py-2 text-sm font-medium text-indigo-600 shadow-sm transition hover:bg-indigo-50"
+        >
+          Actualizar
+        </button>
+      </div>
 
         <section
           aria-label="Filtro de período"
@@ -451,8 +404,8 @@ export default function AnaliticaPage() {
                   onClick={() => setPreset(p)}
                   className={`px-3 py-1.5 text-sm rounded-full border transition-colors ${
                     preset === p
-                      ? "bg-blue-600 border-blue-600 text-white"
-                      : "bg-white border-slate-300 text-gray-700 hover:bg-slate-50"
+                      ? "bg-indigo-600 border-indigo-600 text-white"
+                      : "bg-white border-slate-300 text-slate-700 hover:bg-slate-50"
                   }`}
                 >
                   {PERIOD_PRESET_LABELS[p]}
@@ -462,7 +415,7 @@ export default function AnaliticaPage() {
 
             {preset === "custom" && (
               <div className="flex flex-wrap items-center gap-2">
-                <label className="text-xs text-gray-500" htmlFor="date-from">
+                <label className="text-xs text-slate-500" htmlFor="date-from">
                   Desde
                 </label>
                 <input
@@ -472,7 +425,7 @@ export default function AnaliticaPage() {
                   onChange={(e) => setCustomFrom(e.target.value)}
                   className="border border-slate-300 rounded-md px-2 py-1.5 text-sm"
                 />
-                <label className="text-xs text-gray-500" htmlFor="date-to">
+                <label className="text-xs text-slate-500" htmlFor="date-to">
                   Hasta
                 </label>
                 <input
@@ -485,27 +438,23 @@ export default function AnaliticaPage() {
               </div>
             )}
 
-            <p className="text-xs text-gray-500 ml-auto">
+            <p className="text-xs text-slate-500 ml-auto">
               {range.start} → {range.end}
             </p>
           </div>
         </section>
 
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-            {error}
-          </div>
-        )}
+        {error && <ErrorBanner>{error}</ErrorBanner>}
 
         {loading && !error && (
-          <p className="text-sm text-gray-500">Calculando conteos...</p>
+          <p className="text-sm text-slate-500">Calculando conteos...</p>
         )}
 
         {!loading && (
           <div className="space-y-6">
             <section aria-label="Resumen de casos">
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-                <h2 className="text-sm font-semibold text-gray-900 mb-3">
+                <h2 className="text-sm font-semibold text-slate-900 mb-3">
                   Distribución de casos por estado
                 </h2>
                 <CaseDistributionBar
@@ -525,7 +474,7 @@ export default function AnaliticaPage() {
                   key={metric.key}
                   className={`rounded-xl border p-4 shadow-sm ${ACCENT_STYLES[metric.accent]}`}
                 >
-                  <div className="text-xs font-medium uppercase tracking-wide text-gray-500">
+                  <div className="text-xs font-medium uppercase tracking-wide text-slate-500">
                     {metric.label}
                   </div>
                   <div
@@ -534,7 +483,7 @@ export default function AnaliticaPage() {
                     {metric.value === null ? "—" : metric.value}
                   </div>
                   {metric.hint && (
-                    <p className="mt-1 text-xs text-gray-500">{metric.hint}</p>
+                    <p className="mt-1 text-xs text-slate-500">{metric.hint}</p>
                   )}
                 </div>
               ))}
@@ -542,11 +491,11 @@ export default function AnaliticaPage() {
 
             <section aria-label="Períodos escolares">
               <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-                <h2 className="text-sm font-semibold text-gray-900 mb-3">
+                <h2 className="text-sm font-semibold text-slate-900 mb-3">
                   Períodos escolares
                 </h2>
                 {metrics.periodos.length === 0 ? (
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-slate-500">
                     Sin períodos que inicien en el rango seleccionado.
                   </p>
                 ) : (
@@ -556,10 +505,10 @@ export default function AnaliticaPage() {
                         key={p.id}
                         className="py-2 flex flex-wrap items-center justify-between gap-2 text-sm"
                       >
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-slate-900">
                           Año {p.school_year}
                         </span>
-                        <span className="text-gray-500">
+                        <span className="text-slate-500">
                           {p.start_date}
                           {" → "}
                           {p.end_date ?? "en curso"}
@@ -577,7 +526,6 @@ export default function AnaliticaPage() {
             </section>
           </div>
         )}
-      </main>
     </div>
   );
 }

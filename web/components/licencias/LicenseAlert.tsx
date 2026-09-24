@@ -9,9 +9,9 @@ interface Props {
 const STYLES: Record<LicenseStatus, string> = {
   active: "",
   expiring_soon: "bg-amber-50 border border-amber-200 text-amber-800",
-  expired: "bg-red-50 border border-red-200 text-red-800",
-  scheduled: "bg-blue-50 border border-blue-200 text-blue-800",
-  none: "bg-gray-50 border border-gray-200 text-gray-600",
+  expired: "bg-rose-50 border border-rose-200 text-rose-800",
+  scheduled: "bg-indigo-50 border border-indigo-200 text-indigo-800",
+  none: "bg-slate-50 border border-slate-200 text-slate-600",
 };
 
 const ICONS: Record<LicenseStatus, string> = {

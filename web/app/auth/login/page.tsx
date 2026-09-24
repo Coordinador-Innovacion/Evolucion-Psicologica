@@ -3,23 +3,23 @@ import Link from "next/link";
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h1 className="text-center text-3xl font-bold text-gray-900">
-            Evolución Psicológica
-          </h1>
-          <h2 className="mt-2 text-center text-sm text-gray-600">
-            Iniciar sesión
-          </h2>
-        </div>
+    <div>
+      <h2 className="text-center text-lg font-semibold text-slate-900">
+        Iniciar sesión
+      </h2>
+      <p className="mt-1 text-center text-sm text-slate-500">
+        Accede con tu correo institucional
+      </p>
 
-        <form className="mt-8 space-y-6" action={signIn}>
-          <div className="space-y-4">
+      <form
+        className="mt-6 space-y-5 rounded-2xl border border-line bg-white p-6 shadow-card sm:p-8"
+        action={signIn}
+      >
+        <div className="space-y-4">
             <div>
               <label
                 htmlFor="email"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-700"
               >
                 Correo electrónico
               </label>
@@ -29,7 +29,7 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="correo@ejemplo.com"
               />
             </div>
@@ -37,7 +37,7 @@ export default function LoginPage() {
             <div>
               <label
                 htmlFor="password"
-                className="block text-sm font-medium text-gray-700"
+                className="block text-sm font-medium text-slate-700"
               >
                 Contraseña
               </label>
@@ -47,7 +47,7 @@ export default function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
                 placeholder="••••••••"
               />
             </div>
@@ -55,7 +55,7 @@ export default function LoginPage() {
 
           <button
             type="submit"
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="w-full rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
           >
             Ingresar
           </button>
@@ -64,7 +64,7 @@ export default function LoginPage() {
             <div>
               <Link
                 href="/auth/recuperar"
-                className="text-blue-600 hover:text-blue-500"
+                className="text-indigo-600 hover:text-indigo-500"
               >
                 ¿Olvidaste tu contraseña?
               </Link>
@@ -72,14 +72,13 @@ export default function LoginPage() {
             <div>
               <Link
                 href="/auth/registro"
-                className="text-blue-600 hover:text-blue-500"
+                className="text-indigo-600 hover:text-indigo-500"
               >
                 ¿No tienes cuenta? Regístrate
               </Link>
             </div>
           </div>
-        </form>
-      </div>
+      </form>
     </div>
   );
 }

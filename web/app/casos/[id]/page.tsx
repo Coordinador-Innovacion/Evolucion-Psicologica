@@ -13,6 +13,7 @@ import {
   canAccessDocuments,
 } from "@/components/documentos/StudentDocumentsPanel";
 import { useUser } from "@/hooks/useUser";
+import { LoadingScreen } from "@/components/ui/feedback";
 import { logClientError, toUserMessage } from "@/lib/errors";
 import type { Caso, Atencion, Derivacion } from "@/types/database";
 import type { CasoEstado } from "@/types/supabase";
@@ -44,16 +45,16 @@ function StateFlow({ estado }: { estado: CasoEstado }) {
             <span
               className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                 isCurrent
-                  ? "bg-blue-600 text-white"
+                  ? "bg-indigo-600 text-white"
                   : isDone
-                    ? "bg-blue-100 text-blue-800"
-                    : "bg-gray-100 text-gray-500"
+                    ? "bg-indigo-100 text-indigo-800"
+                    : "bg-slate-100 text-slate-500"
               }`}
             >
               {step.label}
             </span>
             {index < STATE_STEPS.length - 1 && (
-              <span className="text-gray-300" aria-hidden="true">
+              <span className="text-slate-300" aria-hidden="true">
                 &rarr;
               </span>
             )}
@@ -66,7 +67,7 @@ function StateFlow({ estado }: { estado: CasoEstado }) {
 
 function AttentionDetails({ attention }: { attention: Atencion }) {
   return (
-    <div className="space-y-2 text-sm text-gray-700">
+    <div className="space-y-2 text-sm text-slate-700">
       <p>
         <span className="font-medium">Motivo:</span> {attention.motivo}
       </p>
@@ -89,7 +90,7 @@ function AttentionDetails({ attention }: { attention: Atencion }) {
           {new Date(attention.proxima_atencion).toLocaleString("es-PE")}
         </p>
       )}
-      <p className="text-xs text-gray-400">
+      <p className="text-xs text-slate-400">
         Esta atención es de solo lectura para su rol.
       </p>
     </div>
@@ -166,27 +167,23 @@ export default function CaseDetailPage({
   }, [id, reloadVersion]);
 
   if (loading || profileLoading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <p className="text-gray-500">Cargando caso...</p>
-      </div>
-    );
+    return <LoadingScreen label="Cargando caso..." />;
   }
 
   if (error || !caso) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="max-w-md mx-auto text-center px-4">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Error</h2>
-            <p className="text-sm text-gray-500 mb-4">{error || "Caso no encontrado"}</p>
-            <Link
-              href="/casos"
-              className="text-sm text-blue-600 hover:text-blue-500"
-            >
-              Volver a casos
-            </Link>
-          </div>
+      <div className="mx-auto max-w-md py-16">
+        <div className="rounded-2xl border border-line bg-white p-8 text-center shadow-card">
+          <h2 className="text-lg font-semibold text-slate-900">Error</h2>
+          <p className="mt-2 text-sm text-slate-500">
+            {error || "Caso no encontrado"}
+          </p>
+          <Link
+            href="/casos"
+            className="mt-5 inline-flex items-center gap-2 rounded-lg border border-line bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            Volver a casos
+          </Link>
         </div>
       </div>
     );
@@ -199,40 +196,15 @@ export default function CaseDetailPage({
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-14">
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/"
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Inicio
-              </Link>
-              <span className="text-sm text-gray-300">|</span>
-              <Link
-                href="/casos"
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Casos
-              </Link>
-              <span className="text-sm text-gray-300">|</span>
-              <span className="text-sm font-medium text-gray-900">Detalle</span>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Información del caso */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-start justify-between mb-4">
+    <div className="mx-auto max-w-4xl space-y-6">
+      {/* Información del caso */}
+      <div className="rounded-xl border border-line bg-white p-6 shadow-card">
+          <div className="mb-4 flex items-start justify-between">
             <div>
-              <h1 className="text-xl font-semibold text-gray-900">
+              <h1 className="text-xl font-semibold text-slate-900">
                 Caso — {caso.estudiantes?.first_names} {caso.estudiantes?.last_names}
               </h1>
-              <p className="text-sm text-gray-500 mt-1">
+              <p className="mt-1 text-sm text-slate-500">
                 DNI: {caso.estudiantes?.document_number}
               </p>
             </div>
@@ -243,32 +215,32 @@ export default function CaseDetailPage({
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm mt-6">
             <div>
-              <span className="font-medium text-gray-700">Situación:</span>
-              <p className="text-gray-600 mt-1">{caso.situation}</p>
+              <span className="font-medium text-slate-700">Situación:</span>
+              <p className="text-slate-600 mt-1">{caso.situation}</p>
             </div>
             <div>
-              <span className="font-medium text-gray-700">Apertura:</span>
-              <p className="text-gray-600 mt-1">
+              <span className="font-medium text-slate-700">Apertura:</span>
+              <p className="text-slate-600 mt-1">
                 {new Date(caso.opened_at).toLocaleString("es-PE")}
               </p>
             </div>
             {caso.closed_at && (
               <div>
-                <span className="font-medium text-gray-700">Cierre:</span>
-                <p className="text-gray-600 mt-1">
+                <span className="font-medium text-slate-700">Cierre:</span>
+                <p className="text-slate-600 mt-1">
                   {new Date(caso.closed_at).toLocaleString("es-PE")}
                 </p>
               </div>
             )}
             {caso.close_reason && (
               <div className="sm:col-span-2">
-                <span className="font-medium text-gray-700">Motivo de cierre:</span>
-                <p className="text-gray-600 mt-1">{caso.close_reason}</p>
+                <span className="font-medium text-slate-700">Motivo de cierre:</span>
+                <p className="text-slate-600 mt-1">{caso.close_reason}</p>
               </div>
             )}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-gray-100">
+          <div className="mt-6 pt-4 border-t border-slate-100">
             <CaseActions
               caseId={caso.id}
               estado={estado}
@@ -280,38 +252,38 @@ export default function CaseDetailPage({
 
         {/* Derivación vinculada (opcional) */}
         {derivacion && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">
+          <div className="rounded-xl border border-line bg-white p-6 shadow-card">
+            <h2 className="text-lg font-semibold text-slate-900 mb-3">
               Derivación vinculada
             </h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="font-medium text-gray-700">Fecha:</span>
-                <p className="text-gray-600 mt-1">
+                <span className="font-medium text-slate-700">Fecha:</span>
+                <p className="text-slate-600 mt-1">
                   {new Date(derivacion.derivation_date).toLocaleDateString("es-PE")}
                 </p>
               </div>
               <div>
-                <span className="font-medium text-gray-700">Derivador:</span>
-                <p className="text-gray-600 mt-1">
+                <span className="font-medium text-slate-700">Derivador:</span>
+                <p className="text-slate-600 mt-1">
                   {derivacion.derivador_nombre} — {derivacion.derivador_cargo}
                 </p>
               </div>
               <div className="sm:col-span-2">
-                <span className="font-medium text-gray-700">Motivo:</span>
-                <p className="text-gray-600 mt-1">{derivacion.motivo}</p>
+                <span className="font-medium text-slate-700">Motivo:</span>
+                <p className="text-slate-600 mt-1">{derivacion.motivo}</p>
               </div>
             </div>
-            <p className="text-xs text-gray-400 mt-3">
+            <p className="text-xs text-slate-400 mt-3">
               La derivación es un registro histórico: enlazarla no crea un segundo caso.
             </p>
           </div>
         )}
 
         {/* Atenciones */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+        <div className="rounded-xl border border-line bg-white p-6 shadow-card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-slate-900">
               Atenciones ({atenciones.length})
             </h2>
           </div>
@@ -323,14 +295,14 @@ export default function CaseDetailPage({
           )}
 
           {canManage && estado === "cerrado" && (
-            <p className="mb-4 text-sm text-gray-500">
+            <p className="mb-4 text-sm text-slate-500">
               El caso está cerrado: no se pueden registrar nuevas atenciones. Reabre el
               caso para continuar.
             </p>
           )}
 
           {sortedAtenciones.length === 0 ? (
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-slate-500">
               Este caso no tiene atenciones registradas.
             </p>
           ) : (
@@ -340,8 +312,8 @@ export default function CaseDetailPage({
                   key={atencion.id}
                   className={`border rounded-lg p-4 cursor-pointer transition-colors ${
                     selectedAttention?.id === atencion.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300"
+                      ? "border-indigo-500 bg-indigo-50"
+                      : "border-slate-200 hover:border-slate-300"
                   }`}
                   onClick={() =>
                     setSelectedAttention(
@@ -351,10 +323,10 @@ export default function CaseDetailPage({
                 >
                   <div className="flex items-start justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-slate-900">
                         {atencion.motivo}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-slate-500 mt-1">
                         {new Date(atencion.created_at).toLocaleString("es-PE")}
                         {atencion.edited_at && (
                           <span className="ml-2 text-amber-600">
@@ -363,13 +335,13 @@ export default function CaseDetailPage({
                         )}
                       </p>
                     </div>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-slate-400">
                       {selectedAttention?.id === atencion.id ? "▲" : "▼"}
                     </span>
                   </div>
 
                   {selectedAttention?.id === atencion.id && (
-                    <div className="mt-4 pt-4 border-t border-gray-200">
+                    <div className="mt-4 pt-4 border-t border-slate-200">
                       {canManage ? (
                         <AttentionEditor
                           attention={atencion}
@@ -387,8 +359,8 @@ export default function CaseDetailPage({
         </div>
 
         {/* Historial de responsables */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+        <div className="rounded-xl border border-line bg-white p-6 shadow-card">
+          <h2 className="text-lg font-semibold text-slate-900 mb-4">
             Responsables
           </h2>
           <ResponsibleHistory
@@ -399,18 +371,17 @@ export default function CaseDetailPage({
 
         {/* Documentos del estudiante (T53) */}
         {canAccessDocuments(profile?.role) && (
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">
+          <div className="rounded-xl border border-line bg-white p-6 shadow-card">
+            <h2 className="text-lg font-semibold text-slate-900 mb-2">
               Documentos del estudiante
             </h2>
-            <p className="text-xs text-gray-400 mb-4">
+            <p className="text-xs text-slate-400 mb-4">
               Los documentos pertenecen al estudiante. La descarga genera un
               enlace temporal; no se almacena ninguna referencia permanente.
             </p>
             <StudentDocumentsPanel studentId={caso.student_id} />
           </div>
         )}
-      </main>
     </div>
   );
 }

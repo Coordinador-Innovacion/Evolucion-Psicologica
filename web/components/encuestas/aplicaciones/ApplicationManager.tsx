@@ -9,6 +9,7 @@ import type {
   SurveyVersionItem,
 } from "@/types/encuestas";
 import { APPLICATION_STATUS_LABELS } from "@/types/encuestas";
+import { Modal } from "@/components/ui/modal";
 
 interface Props {
   surveyId: string;
@@ -108,27 +109,39 @@ export function ApplicationManager({ surveyId, surveyTitle }: Props) {
     setExtending(false);
   };
 
+  const closeCreate = () => {
+    setShowCreate(false);
+    setSelectedVersionId("");
+    setStartedAt("");
+    setEndsAt("");
+  };
+
+  const closeExtend = () => {
+    setExtendingId(null);
+    setNewEndsAt("");
+  };
+
   const getStatusBadge = (status: string) => {
     const base = "inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium";
     switch (status) {
       case "scheduled":
-        return <span className={`${base} bg-blue-100 text-blue-800`}>{APPLICATION_STATUS_LABELS[status]}</span>;
+        return <span className={`${base} bg-indigo-100 text-indigo-800`}>{APPLICATION_STATUS_LABELS[status]}</span>;
       case "active":
-        return <span className={`${base} bg-green-100 text-green-800`}>{APPLICATION_STATUS_LABELS[status]}</span>;
+        return <span className={`${base} bg-emerald-100 text-emerald-800`}>{APPLICATION_STATUS_LABELS[status]}</span>;
       case "extended":
         return <span className={`${base} bg-yellow-100 text-yellow-800`}>{APPLICATION_STATUS_LABELS[status]}</span>;
       case "completed":
-        return <span className={`${base} bg-gray-100 text-gray-800`}>{APPLICATION_STATUS_LABELS[status]}</span>;
+        return <span className={`${base} bg-slate-100 text-slate-800`}>{APPLICATION_STATUS_LABELS[status]}</span>;
       case "expired":
-        return <span className={`${base} bg-red-100 text-red-800`}>{APPLICATION_STATUS_LABELS[status]}</span>;
+        return <span className={`${base} bg-rose-100 text-rose-800`}>{APPLICATION_STATUS_LABELS[status]}</span>;
       default:
-        return <span className={`${base} bg-gray-100 text-gray-600`}>{status}</span>;
+        return <span className={`${base} bg-slate-100 text-slate-600`}>{status}</span>;
     }
   };
 
   if (loading) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-slate-500">
         Cargando aplicaciones...
       </div>
     );
@@ -138,10 +151,10 @@ export function ApplicationManager({ surveyId, surveyTitle }: Props) {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-semibold text-gray-900">
+          <h2 className="text-lg font-semibold text-slate-900">
             Aplicaciones de &ldquo;{surveyTitle}&rdquo;
           </h2>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-slate-500">
             {applications.length}{" "}
             {applications.length === 1 ? "aplicación" : "aplicaciones"}{" "}
             registradas
@@ -151,7 +164,7 @@ export function ApplicationManager({ surveyId, surveyTitle }: Props) {
           <button
             onClick={() => setShowCreate(true)}
             disabled={publishedVersions.length === 0}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
             title={
               publishedVersions.length === 0
                 ? "No hay versiones publicadas disponibles"
@@ -162,7 +175,7 @@ export function ApplicationManager({ surveyId, surveyTitle }: Props) {
           </button>
           <Link
             href={`/encuestas/${surveyId}/versiones`}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+            className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
           >
             Volver a versiones
           </Link>
@@ -170,177 +183,159 @@ export function ApplicationManager({ surveyId, surveyTitle }: Props) {
       </div>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+        <div className="mb-4 p-3 bg-rose-50 border border-rose-200 rounded-md text-sm text-rose-700">
           {error}
           <button
             onClick={() => setError(null)}
-            className="ml-2 text-red-500 hover:text-red-700"
+            className="ml-2 text-rose-500 hover:text-rose-700"
           >
             ✕
           </button>
         </div>
       )}
 
-      {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Crear aplicación
-            </h3>
-            <form onSubmit={handleCreate}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Versión publicada *
-                  </label>
-                  <select
-                    value={selectedVersionId}
-                    onChange={(e) => setSelectedVersionId(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  >
-                    <option value="">Seleccionar versión...</option>
-                    {publishedVersions.map((v) => (
-                      <option key={v.id} value={v.id}>
-                        Versión {v.version_number} — Publicada{" "}
-                        {v.published_at
-                          ? new Date(v.published_at).toLocaleDateString("es-PE")
-                          : ""}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Año escolar *
-                  </label>
-                  <input
-                    type="number"
-                    value={year}
-                    onChange={(e) => setYear(parseInt(e.target.value))}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    required
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Fecha/hora inicio *
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={startedAt}
-                      onChange={(e) => setStartedAt(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">
-                      Fecha/hora fin *
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={endsAt}
-                      onChange={(e) => setEndsAt(e.target.value)}
-                      className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                      required
-                    />
-                  </div>
-                </div>
-
-                {startedAt && endsAt && new Date(startedAt) >= new Date(endsAt) && (
-                  <p className="text-sm text-red-600">
-                    La fecha de inicio debe ser anterior a la fecha de fin.
-                  </p>
-                )}
-              </div>
-
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreate(false);
-                    setSelectedVersionId("");
-                    setStartedAt("");
-                    setEndsAt("");
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={
-                    creating ||
-                    !selectedVersionId ||
-                    !startedAt ||
-                    !endsAt ||
-                    new Date(startedAt) >= new Date(endsAt)
-                  }
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {creating ? "Creando..." : "Crear aplicación"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {extendingId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Ampliar plazo
-            </h3>
-            <p className="text-sm text-gray-500 mb-4">
-              La nueva fecha de fin debe ser posterior a la fecha actual de fin.
-              El avance guardado se conserva.
-            </p>
+      <Modal open={showCreate} onClose={closeCreate} title="Crear aplicación">
+        <form onSubmit={handleCreate}>
+          <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Nueva fecha/hora fin *
+              <label className="block text-sm font-medium text-slate-700">
+                Versión publicada *
+              </label>
+              <select
+                value={selectedVersionId}
+                onChange={(e) => setSelectedVersionId(e.target.value)}
+                className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                required
+              >
+                <option value="">Seleccionar versión...</option>
+                {publishedVersions.map((v) => (
+                  <option key={v.id} value={v.id}>
+                    Versión {v.version_number} — Publicada{" "}
+                    {v.published_at
+                      ? new Date(v.published_at).toLocaleDateString("es-PE")
+                      : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-slate-700">
+                Año escolar *
               </label>
               <input
-                type="datetime-local"
-                value={newEndsAt}
-                onChange={(e) => setNewEndsAt(e.target.value)}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                type="number"
+                value={year}
+                onChange={(e) => setYear(parseInt(e.target.value))}
+                className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                required
               />
             </div>
-            <div className="mt-6 flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setExtendingId(null);
-                  setNewEndsAt("");
-                }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-              >
-                Cancelar
-              </button>
-              <button
-                onClick={() => handleExtend(extendingId)}
-                disabled={extending || !newEndsAt}
-                className="px-4 py-2 text-sm font-medium text-white bg-yellow-600 border border-transparent rounded-md hover:bg-yellow-700 disabled:opacity-50"
-              >
-                {extending ? "Ampliando..." : "Ampliar plazo"}
-              </button>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  Fecha/hora inicio *
+                </label>
+                <input
+                  type="datetime-local"
+                  value={startedAt}
+                  onChange={(e) => setStartedAt(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700">
+                  Fecha/hora fin *
+                </label>
+                <input
+                  type="datetime-local"
+                  value={endsAt}
+                  onChange={(e) => setEndsAt(e.target.value)}
+                  className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  required
+                />
+              </div>
             </div>
+
+            {startedAt && endsAt && new Date(startedAt) >= new Date(endsAt) && (
+              <p className="text-sm text-rose-600">
+                La fecha de inicio debe ser anterior a la fecha de fin.
+              </p>
+            )}
           </div>
+
+          <div className="mt-6 flex justify-end space-x-3">
+            <button
+              type="button"
+              onClick={closeCreate}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
+            >
+              Cancelar
+            </button>
+            <button
+              type="submit"
+              disabled={
+                creating ||
+                !selectedVersionId ||
+                !startedAt ||
+                !endsAt ||
+                new Date(startedAt) >= new Date(endsAt)
+              }
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {creating ? "Creando..." : "Crear aplicación"}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        open={extendingId !== null}
+        onClose={closeExtend}
+        title="Ampliar plazo"
+      >
+        <p className="text-sm text-slate-500 mb-4">
+          La nueva fecha de fin debe ser posterior a la fecha actual de fin.
+          El avance guardado se conserva.
+        </p>
+        <div>
+          <label className="block text-sm font-medium text-slate-700">
+            Nueva fecha/hora fin *
+          </label>
+          <input
+            type="datetime-local"
+            value={newEndsAt}
+            onChange={(e) => setNewEndsAt(e.target.value)}
+            className="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
         </div>
-      )}
+        <div className="mt-6 flex justify-end space-x-3">
+          <button
+            type="button"
+            onClick={closeExtend}
+            className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={() => extendingId && handleExtend(extendingId)}
+            disabled={extending || !newEndsAt}
+            className="px-4 py-2 text-sm font-medium text-white bg-yellow-600 border border-transparent rounded-md hover:bg-yellow-700 disabled:opacity-50"
+          >
+            {extending ? "Ampliando..." : "Ampliar plazo"}
+          </button>
+        </div>
+      </Modal>
 
       {applications.length === 0 ? (
-        <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
-          <p className="text-gray-500">
+        <div className="text-center py-12 bg-white rounded-lg border border-slate-200">
+          <p className="text-slate-500">
             No hay aplicaciones creadas para esta encuesta.
           </p>
           {publishedVersions.length === 0 && (
-            <p className="mt-2 text-sm text-gray-400">
+            <p className="mt-2 text-sm text-slate-400">
               Necesita al menos una versión publicada para crear aplicaciones.
             </p>
           )}
@@ -356,15 +351,15 @@ export function ApplicationManager({ surveyId, surveyTitle }: Props) {
               >
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center space-x-3">
-                    <span className="text-sm font-medium text-gray-900">
+                    <span className="text-sm font-medium text-slate-900">
                       Versión {version?.version_number ?? "?"}
                     </span>
                     {getStatusBadge(app.status)}
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-slate-400">
                       {app.progress}% avance
                     </span>
                   </div>
-                  <div className="mt-1 flex items-center space-x-4 text-xs text-gray-400">
+                  <div className="mt-1 flex items-center space-x-4 text-xs text-slate-400">
                     <span>Año: {app.year}</span>
                     <span>
                       Inicio:{" "}
@@ -406,7 +401,7 @@ export function ApplicationManager({ surveyId, surveyTitle }: Props) {
                   )}
                   {app.access_token && (
                     <span
-                      className="text-xs text-gray-400 font-mono"
+                      className="text-xs text-slate-400 font-mono"
                       title="Token de acceso"
                     >
                       {app.access_token.slice(0, 8)}...

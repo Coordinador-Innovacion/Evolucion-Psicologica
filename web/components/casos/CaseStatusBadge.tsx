@@ -9,9 +9,9 @@ const LABELS: Record<CasoEstado, string> = {
 };
 
 const STYLES: Record<CasoEstado, string> = {
-  inicio: "bg-blue-100 text-blue-800",
+  inicio: "bg-indigo-100 text-indigo-800",
   en_proceso: "bg-amber-100 text-amber-800",
-  cerrado: "bg-gray-100 text-gray-600",
+  cerrado: "bg-slate-100 text-slate-600",
 };
 
 interface Props {

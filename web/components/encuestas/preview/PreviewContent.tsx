@@ -140,7 +140,7 @@ export function PreviewContent({ surveyId, versionId }: Props) {
 
   if (loading) {
     return (
-      <div className="text-center py-12 text-gray-500">
+      <div className="text-center py-12 text-slate-500">
         Cargando vista previa...
       </div>
     );
@@ -153,7 +153,7 @@ export function PreviewContent({ surveyId, versionId }: Props) {
           <input
             type="text"
             disabled
-            className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-sm"
+            className="w-full px-3 py-2 border border-slate-200 rounded-md bg-slate-50 text-sm"
             placeholder="Respuesta de texto corto"
           />
         );
@@ -162,7 +162,7 @@ export function PreviewContent({ surveyId, versionId }: Props) {
           <textarea
             disabled
             rows={3}
-            className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-sm"
+            className="w-full px-3 py-2 border border-slate-200 rounded-md bg-slate-50 text-sm"
             placeholder="Respuesta de texto largo"
           />
         );
@@ -171,7 +171,7 @@ export function PreviewContent({ surveyId, versionId }: Props) {
           <div className="space-y-2">
             {question.options.map((opt) => (
               <label key={opt.id} className="flex items-center space-x-2 text-sm">
-                <input type="radio" disabled className="text-blue-600" />
+                <input type="radio" disabled className="text-indigo-600" />
                 <span>{opt.label}</span>
               </label>
             ))}
@@ -182,7 +182,7 @@ export function PreviewContent({ surveyId, versionId }: Props) {
           <div className="space-y-2">
             {question.options.map((opt) => (
               <label key={opt.id} className="flex items-center space-x-2 text-sm">
-                <input type="checkbox" disabled className="text-blue-600 rounded" />
+                <input type="checkbox" disabled className="text-indigo-600 rounded" />
                 <span>{opt.label}</span>
               </label>
             ))}
@@ -192,11 +192,11 @@ export function PreviewContent({ surveyId, versionId }: Props) {
         return (
           <div className="flex space-x-4 text-sm">
             <label className="flex items-center space-x-2">
-              <input type="radio" disabled className="text-blue-600" />
+              <input type="radio" disabled className="text-indigo-600" />
               <span>Sí</span>
             </label>
             <label className="flex items-center space-x-2">
-              <input type="radio" disabled className="text-blue-600" />
+              <input type="radio" disabled className="text-indigo-600" />
               <span>No</span>
             </label>
           </div>
@@ -206,7 +206,7 @@ export function PreviewContent({ surveyId, versionId }: Props) {
           <input
             type="number"
             disabled
-            className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-sm"
+            className="w-full px-3 py-2 border border-slate-200 rounded-md bg-slate-50 text-sm"
             placeholder="0"
           />
         );
@@ -215,7 +215,7 @@ export function PreviewContent({ surveyId, versionId }: Props) {
           <input
             type="date"
             disabled
-            className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-sm"
+            className="w-full px-3 py-2 border border-slate-200 rounded-md bg-slate-50 text-sm"
           />
         );
       case "escala": {
@@ -233,14 +233,14 @@ export function PreviewContent({ surveyId, versionId }: Props) {
                   key={v}
                   type="button"
                   disabled
-                  className="w-10 h-10 border border-gray-200 rounded-md bg-gray-50 text-sm text-gray-500"
+                  className="w-10 h-10 border border-slate-200 rounded-md bg-slate-50 text-sm text-slate-500"
                 >
                   {v}
                 </button>
               ))}
             </div>
             {(minLabel || maxLabel) && (
-              <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <div className="flex justify-between text-xs text-slate-400 mt-1">
                 <span>{minLabel}</span>
                 <span>{maxLabel}</span>
               </div>
@@ -252,7 +252,7 @@ export function PreviewContent({ surveyId, versionId }: Props) {
         return (
           <select
             disabled
-            className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-sm"
+            className="w-full px-3 py-2 border border-slate-200 rounded-md bg-slate-50 text-sm"
           >
             <option>Seleccionar...</option>
             {question.options.map((opt) => (
@@ -262,7 +262,7 @@ export function PreviewContent({ surveyId, versionId }: Props) {
         );
       default:
         return (
-          <div className="text-sm text-gray-400 italic">
+          <div className="text-sm text-slate-400 italic">
             Tipo no disponible para vista previa
           </div>
         );
@@ -271,12 +271,12 @@ export function PreviewContent({ surveyId, versionId }: Props) {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-        <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 mb-6">
+        <h2 className="text-xl font-bold text-slate-900">{title}</h2>
         {description && (
-          <p className="mt-2 text-sm text-gray-500">{description}</p>
+          <p className="mt-2 text-sm text-slate-500">{description}</p>
         )}
-        <p className="mt-3 text-xs text-gray-400">
+        <p className="mt-3 text-xs text-slate-400">
           Vista previa — {sections.length}{" "}
           {sections.length === 1 ? "sección" : "secciones"},{" "}
           {sections.reduce((acc, s) => acc + s.questions.length, 0)}{" "}
@@ -287,7 +287,7 @@ export function PreviewContent({ surveyId, versionId }: Props) {
       </div>
 
       {sections.length === 0 ? (
-        <div className="text-center py-12 text-gray-400">
+        <div className="text-center py-12 text-slate-400">
           Esta encuesta no tiene secciones ni preguntas aún.
         </div>
       ) : (
@@ -299,8 +299,8 @@ export function PreviewContent({ surveyId, versionId }: Props) {
                 onClick={() => setActiveSection(idx)}
                 className={`px-3 py-2 text-sm font-medium rounded-md whitespace-nowrap transition-colors ${
                   activeSection === idx
-                    ? "bg-blue-100 text-blue-700"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-indigo-100 text-indigo-700"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
                 {sec.title}
@@ -309,12 +309,12 @@ export function PreviewContent({ surveyId, versionId }: Props) {
           </div>
 
           {sections[activeSection] && (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
+            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+              <h3 className="text-lg font-semibold text-slate-900 mb-1">
                 {sections[activeSection].title}
               </h3>
               {sections[activeSection].description && (
-                <p className="text-sm text-gray-500 mb-6">
+                <p className="text-sm text-slate-500 mb-6">
                   {sections[activeSection].description}
                 </p>
               )}
@@ -323,18 +323,18 @@ export function PreviewContent({ surveyId, versionId }: Props) {
                 {sections[activeSection].questions.map((question) => (
                   <div key={question.id}>
                     <div className="flex items-start space-x-2 mb-2">
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium text-slate-900">
                         {question.label}
                       </span>
                       {question.is_required && (
-                        <span className="text-red-500 text-xs">*</span>
+                        <span className="text-rose-500 text-xs">*</span>
                       )}
-                      <span className="text-xs text-gray-400 ml-auto">
+                      <span className="text-xs text-slate-400 ml-auto">
                         {QUESTION_TYPE_LABELS[question.question_type]}
                       </span>
                     </div>
                     {question.description && (
-                      <p className="text-xs text-gray-500 mb-2">
+                      <p className="text-xs text-slate-500 mb-2">
                         {question.description}
                       </p>
                     )}
@@ -348,18 +348,18 @@ export function PreviewContent({ surveyId, versionId }: Props) {
                   type="button"
                   disabled={activeSection === 0}
                   onClick={() => setActiveSection((prev) => prev - 1)}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Anterior
                 </button>
-                <span className="text-sm text-gray-400 self-center">
+                <span className="text-sm text-slate-400 self-center">
                   {activeSection + 1} / {sections.length}
                 </span>
                 <button
                   type="button"
                   disabled={activeSection === sections.length - 1}
                   onClick={() => setActiveSection((prev) => prev + 1)}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Siguiente
                 </button>

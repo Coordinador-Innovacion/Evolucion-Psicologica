@@ -28,7 +28,7 @@ export function DocumentUploader({ studentId, onUploaded }: Props) {
   return (
     <div className="space-y-3">
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
+        <label className="block text-sm font-medium text-slate-700 mb-1">
           Archivo (PDF, imagen, Word, Excel, máx. 50 MiB)
         </label>
         <input
@@ -37,7 +37,7 @@ export function DocumentUploader({ studentId, onUploaded }: Props) {
           accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx,.xls,.xlsx,.txt,.rtf"
           onChange={handleFileChange}
           disabled={uploading}
-          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50"
+          className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 disabled:opacity-50"
         />
       </div>
       <div>
@@ -47,14 +47,14 @@ export function DocumentUploader({ studentId, onUploaded }: Props) {
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Descripción (opcional)"
           disabled={uploading}
-          className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm disabled:opacity-50"
+          className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm disabled:opacity-50"
         />
       </div>
       {uploading && (
-        <p className="text-sm text-blue-600">Subiendo documento...</p>
+        <p className="text-sm text-indigo-600">Subiendo documento...</p>
       )}
       {error && (
-        <p className="text-sm text-red-600">{error}</p>
+        <p className="text-sm text-rose-600">{error}</p>
       )}
     </div>
   );

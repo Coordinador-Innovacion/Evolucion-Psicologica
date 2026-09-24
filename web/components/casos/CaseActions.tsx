@@ -41,7 +41,7 @@ export function CaseActions({ caseId, estado, canManage, onStateChanged }: Props
   return (
     <div className="space-y-3">
       {!canManage ? (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-slate-500">
           {estado === "cerrado"
             ? "Caso cerrado. Solo Psicólogo o Global pueden reabrirlo."
             : "Solo Psicólogo o Global pueden cerrar o reabrir casos."}
@@ -52,7 +52,7 @@ export function CaseActions({ caseId, estado, canManage, onStateChanged }: Props
             <button
               type="button"
               onClick={() => setShowCloseDialog(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700"
+              className="px-4 py-2 text-sm font-medium text-white bg-rose-600 border border-transparent rounded-md hover:bg-rose-700"
             >
               Cerrar caso
             </button>
@@ -60,7 +60,7 @@ export function CaseActions({ caseId, estado, canManage, onStateChanged }: Props
             <button
               type="button"
               onClick={() => setShowReopenDialog(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700"
+              className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700"
             >
               Reabrir caso
             </button>
@@ -69,7 +69,7 @@ export function CaseActions({ caseId, estado, canManage, onStateChanged }: Props
       )}
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-md text-sm text-rose-700">
           {error}
         </div>
       )}
@@ -78,16 +78,16 @@ export function CaseActions({ caseId, estado, canManage, onStateChanged }: Props
       {showCloseDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">
               Cerrar caso
             </h3>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-slate-500 mb-4">
               El caso pasará a estado &quot;Cerrado&quot;. Esta acción quedará registrada en la auditoría.
             </p>
             <div className="mb-4">
               <label
                 htmlFor="closeReason"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-slate-700 mb-1"
               >
                 Motivo de cierre *
               </label>
@@ -96,7 +96,7 @@ export function CaseActions({ caseId, estado, canManage, onStateChanged }: Props
                 value={closeReason}
                 onChange={(e) => setCloseReason(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 text-sm"
+                className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500 focus:border-rose-500 text-sm"
                 placeholder="Indique el motivo del cierre..."
                 required
               />
@@ -108,7 +108,7 @@ export function CaseActions({ caseId, estado, canManage, onStateChanged }: Props
                   setShowCloseDialog(false);
                   setCloseReason("");
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
               >
                 Cancelar
               </button>
@@ -116,7 +116,7 @@ export function CaseActions({ caseId, estado, canManage, onStateChanged }: Props
                 type="button"
                 onClick={handleClose}
                 disabled={!closeReason.trim() || loading}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-rose-600 border border-transparent rounded-md hover:bg-rose-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Cerrando..." : "Cerrar caso"}
               </button>
@@ -129,16 +129,16 @@ export function CaseActions({ caseId, estado, canManage, onStateChanged }: Props
       {showReopenDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+            <h3 className="text-lg font-semibold text-slate-900 mb-2">
               Reabrir caso
             </h3>
-            <p className="text-sm text-gray-500 mb-4">
+            <p className="text-sm text-slate-500 mb-4">
               El caso pasará de &quot;Cerrado&quot; a &quot;Inicio&quot;. Se registrará como nuevo responsable. Esta acción quedará registrada en la auditoría.
             </p>
             <div className="mb-4">
               <label
                 htmlFor="reopenReason"
-                className="block text-sm font-medium text-gray-700 mb-1"
+                className="block text-sm font-medium text-slate-700 mb-1"
               >
                 Motivo de reapertura *
               </label>
@@ -147,7 +147,7 @@ export function CaseActions({ caseId, estado, canManage, onStateChanged }: Props
                 value={reopenReason}
                 onChange={(e) => setReopenReason(e.target.value)}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm"
                 placeholder="Indique el motivo de la reapertura..."
                 required
               />
@@ -159,7 +159,7 @@ export function CaseActions({ caseId, estado, canManage, onStateChanged }: Props
                   setShowReopenDialog(false);
                   setReopenReason("");
                 }}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
               >
                 Cancelar
               </button>
@@ -167,7 +167,7 @@ export function CaseActions({ caseId, estado, canManage, onStateChanged }: Props
                 type="button"
                 onClick={handleReopen}
                 disabled={!reopenReason.trim() || loading}
-                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? "Reabriendo..." : "Reabrir caso"}
               </button>

@@ -1,9 +1,9 @@
 "use client";
 
 import { use, useEffect, useState } from "react";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { ApplicationManager } from "@/components/encuestas/aplicaciones/ApplicationManager";
+import { LoadingScreen } from "@/components/ui/feedback";
 
 export default function AplicacionesPage({
   params,
@@ -29,32 +29,18 @@ export default function AplicacionesPage({
   }, [id]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-16">
-            <div className="flex items-center space-x-8">
-              <Link href="/" className="text-xl font-bold text-gray-900">
-                Evolución Psicológica
-              </Link>
-              <Link
-                href="/encuestas"
-                className="text-sm font-medium text-gray-700 hover:text-gray-900"
-              >
-                Encuestas
-              </Link>
-              <span className="text-sm text-gray-400">Aplicaciones</span>
-            </div>
-          </div>
-        </div>
-      </nav>
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {loading ? (
-          <div className="text-center py-12 text-gray-500">Cargando...</div>
-        ) : (
-          <ApplicationManager surveyId={id} surveyTitle={title} />
-        )}
-      </main>
+    <div className="mx-auto max-w-6xl space-y-6">
+      <div>
+        <p className="text-xs font-medium uppercase tracking-wide text-slate-400">
+          {title || "Encuesta"}
+        </p>
+        <h1 className="text-xl font-semibold text-slate-900">Aplicaciones</h1>
+      </div>
+      {loading ? (
+        <LoadingScreen label="Cargando aplicaciones..." />
+      ) : (
+        <ApplicationManager surveyId={id} surveyTitle={title} />
+      )}
     </div>
   );
 }

@@ -18,6 +18,15 @@ import { createDefaultConfig, createDefaultPresentation } from "@/types/encuesta
 type Question = Tables<"encuesta_preguntas">;
 type Option = Tables<"encuesta_opciones">;
 
+interface GlobalSurveyRow {
+  id: string;
+  title: string;
+  description: string | null;
+  created_at: string;
+  institutions: { name: string } | null;
+  encuesta_versiones: { status: string }[];
+}
+
 const tempId = () => `temp_${crypto.randomUUID()}`;
 
 export function useEncuestas() {
@@ -36,42 +45,83 @@ export function useEncuestas() {
       }
       const { data: profile } = await supabase
         .from("perfiles")
-        .select("institution_id")
+        .select("institution_id, role")
         .eq("user_id", user.id)
         .single();
-      if (!profile?.institution_id) {
-        if (!cancelled) { setSurveys([]); setLoading(false); }
+      if (profile?.institution_id) {
+        const { data, error } = await supabase.rpc("get_institution_surveys", {
+          p_institution_id: profile.institution_id,
+        });
+        if (!cancelled) {
+          if (error || !data?.success) {
+            setSurveys([]);
+          } else {
+            setSurveys(data.data || []);
+          }
+          setLoading(false);
+        }
         return;
       }
-      const { data, error } = await supabase.rpc("get_institution_surveys", {
-        p_institution_id: profile.institution_id,
-      });
-      if (!cancelled) {
-        if (error || !data?.success) {
-          setSurveys([]);
-        } else {
-          setSurveys(data.data || []);
+      if (profile?.role === "global") {
+        const { data, error } = await supabase
+          .from("encuestas")
+          .select(
+            "id, title, description, created_at, institutions(name), encuesta_versiones(status)"
+          )
+          .order("created_at", { ascending: false });
+        if (!cancelled) {
+          if (error) {
+            setSurveys([]);
+          } else {
+            setSurveys(
+              ((data ?? []) as unknown as GlobalSurveyRow[]).map((s) => ({
+                id: s.id,
+                title: s.title,
+                description: s.description,
+                created_at: s.created_at,
+                version_count: s.encuesta_versiones?.length ?? 0,
+                published_versions: (s.encuesta_versiones ?? []).filter(
+                  (v) => v.status === "published"
+                ).length,
+                institution_name: s.institutions?.name ?? null,
+              }))
+            );
+          }
+          setLoading(false);
         }
-        setLoading(false);
+        return;
       }
+      if (!cancelled) { setSurveys([]); setLoading(false); }
+      return;
     }
     load();
     return () => { cancelled = true; };
   }, []);
 
   const createSurvey = useCallback(
-    async (title: string, description: string | null) => {
+    async (
+      title: string,
+      description: string | null,
+      institutionId?: string
+    ) => {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("No autenticado");
       const { data: profile } = await supabase
         .from("perfiles")
-        .select("institution_id")
+        .select("institution_id, role")
         .eq("user_id", user.id)
         .single();
-      if (!profile?.institution_id) throw new Error("Sin institución");
+      const targetInstitution = institutionId ?? profile?.institution_id ?? undefined;
+      if (!targetInstitution) {
+        throw new Error(
+          profile?.role === "global"
+            ? "Seleccione una institución"
+            : "Sin institución"
+        );
+      }
       const { data, error } = await supabase.rpc("create_survey", {
-        p_institution_id: profile.institution_id,
+        p_institution_id: targetInstitution,
         p_title: title,
         p_description: description || null,
       });

@@ -45,11 +45,11 @@ export function NewAttentionForm({ caseId, onCreated }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 border border-gray-200 rounded-lg p-4 bg-gray-50">
-      <h3 className="text-sm font-semibold text-gray-900">Nueva atención</h3>
+    <form onSubmit={handleSubmit} className="space-y-4 border border-slate-200 rounded-lg p-4 bg-slate-50">
+      <h3 className="text-sm font-semibold text-slate-900">Nueva atención</h3>
 
       <div>
-        <label htmlFor="att-motivo" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="att-motivo" className="block text-sm font-medium text-slate-700 mb-1">
           Motivo *
         </label>
         <textarea
@@ -58,13 +58,13 @@ export function NewAttentionForm({ caseId, onCreated }: Props) {
           onChange={(e) => setMotivo(e.target.value)}
           rows={2}
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           placeholder="Motivo de la atención..."
         />
       </div>
 
       <div>
-        <label htmlFor="att-queSeHizo" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="att-queSeHizo" className="block text-sm font-medium text-slate-700 mb-1">
           Qué se hizo *
         </label>
         <textarea
@@ -73,13 +73,13 @@ export function NewAttentionForm({ caseId, onCreated }: Props) {
           onChange={(e) => setQueSeHizo(e.target.value)}
           rows={3}
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           placeholder="Descripción de la intervención..."
         />
       </div>
 
       <div>
-        <label htmlFor="att-observaciones" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="att-observaciones" className="block text-sm font-medium text-slate-700 mb-1">
           Observaciones
         </label>
         <textarea
@@ -87,12 +87,12 @@ export function NewAttentionForm({ caseId, onCreated }: Props) {
           value={observaciones}
           onChange={(e) => setObservaciones(e.target.value)}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         />
       </div>
 
       <div>
-        <label htmlFor="att-compromisos" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="att-compromisos" className="block text-sm font-medium text-slate-700 mb-1">
           Compromisos
         </label>
         <textarea
@@ -100,12 +100,12 @@ export function NewAttentionForm({ caseId, onCreated }: Props) {
           value={compromisos}
           onChange={(e) => setCompromisos(e.target.value)}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         />
       </div>
 
       <div>
-        <label htmlFor="att-proxima" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="att-proxima" className="block text-sm font-medium text-slate-700 mb-1">
           Próxima atención
         </label>
         <input
@@ -113,12 +113,12 @@ export function NewAttentionForm({ caseId, onCreated }: Props) {
           type="datetime-local"
           value={proximaAtencion}
           onChange={(e) => setProximaAtencion(e.target.value)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
         />
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-md text-sm text-rose-700">
           {error}
         </div>
       )}
@@ -130,7 +130,7 @@ export function NewAttentionForm({ caseId, onCreated }: Props) {
       )}
 
       {created && !error && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-md text-sm text-green-700">
+        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-md text-sm text-emerald-700">
           Atención registrada. La primera atención del caso lo lleva a &quot;En proceso&quot;.
         </div>
       )}
@@ -139,7 +139,7 @@ export function NewAttentionForm({ caseId, onCreated }: Props) {
         <button
           type="submit"
           disabled={!canSubmit}
-          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {loading ? "Guardando..." : "Registrar atención"}
         </button>

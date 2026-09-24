@@ -42,12 +42,12 @@ export function StudentDocumentsPanel({ studentId }: Props) {
   } = useStudentDocuments(authorized ? studentId : null);
 
   if (profileLoading) {
-    return <p className="text-sm text-gray-500">Cargando documentos...</p>;
+    return <p className="text-sm text-slate-500">Cargando documentos...</p>;
   }
 
   if (!authorized) {
     return (
-      <p className="text-sm text-gray-500">
+      <p className="text-sm text-slate-500">
         Su rol no tiene acceso a los documentos del estudiante.
       </p>
     );
@@ -75,8 +75,8 @@ export function StudentDocumentsPanel({ studentId }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-        <h3 className="text-sm font-semibold text-gray-900 mb-3">
+      <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
+        <h3 className="text-sm font-semibold text-slate-900 mb-3">
           Adjuntar documento
         </h3>
         <DocumentUploader studentId={studentId} onUploaded={refresh} />
@@ -92,7 +92,7 @@ export function StudentDocumentsPanel({ studentId }: Props) {
       />
 
       {!isGlobal && (
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-slate-400">
           La eliminación de documentos corresponde al rol Global.
         </p>
       )}

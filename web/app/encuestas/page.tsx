@@ -4,24 +4,52 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEncuestas } from "@/hooks/useEncuestas";
+import { useUser } from "@/hooks/useUser";
+import { useInstitutions } from "@/hooks/useInstitutions";
 import { logClientError, toUserMessage } from "@/lib/errors";
+import { Button, buttonClass } from "@/components/ui/button";
+import { Card, Field, inputClasses, selectClasses } from "@/components/ui/field";
+import { Modal } from "@/components/ui/modal";
+import { EmptyState, ErrorBanner, LoadingScreen } from "@/components/ui/feedback";
 
 export default function EncuestasPage() {
   const router = useRouter();
+  const { profile } = useUser();
   const { surveys, loading, createSurvey, copySurvey } = useEncuestas();
   const [showCreate, setShowCreate] = useState(false);
   const [newTitle, setNewTitle] = useState("");
   const [newDesc, setNewDesc] = useState("");
+  const [newInstitutionId, setNewInstitutionId] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isGlobal = profile?.role === "global";
+  const { institutions, loading: institutionsLoading } = useInstitutions(
+    isGlobal === true
+  );
+  const needsInstitution = isGlobal === true;
+  const createDisabled =
+    creating || !newTitle.trim() || (needsInstitution && !newInstitutionId);
+
+  const closeCreate = () => {
+    setShowCreate(false);
+    setNewTitle("");
+    setNewDesc("");
+    setNewInstitutionId("");
+    setError(null);
+  };
+
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newTitle.trim()) return;
+    if (createDisabled) return;
     setCreating(true);
     setError(null);
     try {
-      const id = await createSurvey(newTitle.trim(), newDesc.trim() || null);
+      const id = await createSurvey(
+        newTitle.trim(),
+        newDesc.trim() || null,
+        newInstitutionId || undefined
+      );
       router.push(`/encuestas/${id}/constructor`);
     } catch (err) {
       logClientError("encuestas.create", err);
@@ -46,118 +74,118 @@ export default function EncuestasPage() {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-8">
+    <div className="mx-auto max-w-6xl space-y-6">
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Encuestas</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-xl font-semibold text-slate-900">Encuestas</h1>
+          <p className="mt-1 text-sm text-slate-500">
             Gestiona las encuestas institucionales
           </p>
         </div>
-        <button
-          onClick={() => setShowCreate(true)}
-          className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-        >
-          Nueva encuesta
-        </button>
+        <Button onClick={() => setShowCreate(true)}>Nueva encuesta</Button>
       </div>
 
-      {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
-              Crear encuesta
-            </h2>
-            <form onSubmit={handleCreate}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Título *
-                  </label>
-                  <input
-                    type="text"
-                    value={newTitle}
-                    onChange={(e) => setNewTitle(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="Título de la encuesta"
-                    required
-                    autoFocus
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">
-                    Descripción
-                  </label>
-                  <textarea
-                    value={newDesc}
-                    onChange={(e) => setNewDesc(e.target.value)}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    rows={3}
-                    placeholder="Descripción opcional"
-                  />
-                </div>
-                {error && (
-                  <p className="text-sm text-red-600">{error}</p>
+      <Modal open={showCreate} onClose={closeCreate} title="Crear encuesta">
+        <form onSubmit={handleCreate}>
+          <div className="space-y-4">
+            <Field label="Título *">
+              <input
+                type="text"
+                value={newTitle}
+                onChange={(e) => setNewTitle(e.target.value)}
+                className={inputClasses}
+                placeholder="Título de la encuesta"
+                required
+                autoFocus
+              />
+            </Field>
+            <Field label="Descripción">
+              <textarea
+                value={newDesc}
+                onChange={(e) => setNewDesc(e.target.value)}
+                className={inputClasses}
+                rows={3}
+                placeholder="Descripción opcional"
+              />
+            </Field>
+            {needsInstitution && (
+              <Field label="Institución educativa *">
+                <select
+                  value={newInstitutionId}
+                  onChange={(e) => setNewInstitutionId(e.target.value)}
+                  className={selectClasses}
+                  required
+                >
+                  <option value="">
+                    {institutionsLoading
+                      ? "Cargando instituciones..."
+                      : "Seleccione una institución"}
+                  </option>
+                  {institutions.map((inst) => (
+                    <option key={inst.id} value={inst.id}>
+                      {inst.name}
+                    </option>
+                  ))}
+                </select>
+                {!institutionsLoading && institutions.length === 0 && (
+                  <p className="mt-1.5 text-xs text-slate-500">
+                    No hay instituciones creadas.{" "}
+                    <Link
+                      href="/instituciones"
+                      className="text-indigo-600 hover:text-indigo-500"
+                    >
+                      Crear institución
+                    </Link>
+                  </p>
                 )}
-              </div>
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowCreate(false);
-                    setNewTitle("");
-                    setNewDesc("");
-                    setError(null);
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  disabled={creating || !newTitle.trim()}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {creating ? "Creando..." : "Crear"}
-                </button>
-              </div>
-            </form>
+              </Field>
+            )}
+            {error && <ErrorBanner>{error}</ErrorBanner>}
           </div>
-        </div>
-      )}
+          <div className="mt-6 flex justify-end gap-3">
+            <Button variant="secondary" onClick={closeCreate}>
+              Cancelar
+            </Button>
+            <Button type="submit" disabled={createDisabled}>
+              {creating ? "Creando..." : "Crear"}
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {loading ? (
-        <div className="text-center py-12 text-gray-500">Cargando...</div>
+        <LoadingScreen label="Cargando encuestas..." />
       ) : surveys.length === 0 ? (
-        <div className="text-center py-12">
-          <p className="text-gray-500">No hay encuestas creadas aún.</p>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="mt-4 text-blue-600 hover:text-blue-500 text-sm font-medium"
-          >
-            Crear primera encuesta
-          </button>
-        </div>
+        <EmptyState
+          title="No hay encuestas creadas aún."
+          description="Crea una encuesta institucional para comenzar a recopilar información."
+          action={<Button onClick={() => setShowCreate(true)}>Crear primera encuesta</Button>}
+        />
       ) : (
-        <div className="bg-white shadow rounded-lg divide-y">
+        <Card className="divide-y divide-line overflow-hidden">
           {surveys.map((survey) => (
             <div
               key={survey.id}
-              className="px-6 py-4 flex items-center justify-between hover:bg-gray-50"
+              className="flex flex-wrap items-center justify-between gap-4 px-5 py-4 transition hover:bg-slate-50"
             >
               <div className="min-w-0 flex-1">
                 <Link
                   href={`/encuestas/${survey.id}/constructor`}
-                  className="text-sm font-medium text-gray-900 hover:text-blue-600 truncate block"
+                  className="block truncate text-sm font-medium text-slate-900 hover:text-indigo-600"
                 >
                   {survey.title}
                 </Link>
                 {survey.description && (
-                  <p className="mt-1 text-sm text-gray-500 truncate">
+                  <p className="mt-0.5 truncate text-sm text-slate-500">
                     {survey.description}
                   </p>
                 )}
-                <div className="mt-1 flex items-center space-x-4 text-xs text-gray-400">
+                <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
+                  {survey.institution_name && (
+                    <span className="inline-flex items-center rounded-full bg-indigo-50 px-2.5 py-0.5 font-medium text-indigo-700">
+                      {survey.institution_name}
+                    </span>
+                  )}
                   <span>
                     {survey.version_count}{" "}
                     {survey.version_count === 1 ? "versión" : "versiones"}
@@ -173,29 +201,30 @@ export default function EncuestasPage() {
                   </span>
                 </div>
               </div>
-              <div className="ml-4 flex items-center space-x-2">
-                <button
+              <div className="flex shrink-0 items-center gap-2">
+                <Button
+                  size="sm"
+                  variant="ghost"
                   onClick={() => handleCopy(survey.id, survey.title)}
-                  className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded border border-gray-200 hover:border-gray-300"
                 >
                   Copiar
-                </button>
+                </Button>
                 <Link
                   href={`/encuestas/${survey.id}/versiones`}
-                  className="text-xs text-gray-600 hover:text-gray-800 px-2 py-1 rounded border border-gray-200 hover:border-gray-300"
+                  className={buttonClass("secondary", "sm")}
                 >
                   Versiones
                 </Link>
                 <Link
                   href={`/encuestas/${survey.id}/constructor`}
-                  className="text-xs text-blue-600 hover:text-blue-500 px-2 py-1 rounded border border-blue-200 hover:border-blue-300"
+                  className={buttonClass("primary", "sm")}
                 >
                   Abrir
                 </Link>
               </div>
             </div>
           ))}
-        </div>
+        </Card>
       )}
     </div>
   );

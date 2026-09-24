@@ -56,7 +56,7 @@ export function QuestionEditor({
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg bg-white">
+    <div className="border border-slate-200 rounded-lg bg-white">
       {showTypeSelector && (
         <QuestionTypeSelector
           onSelect={(type) => onUpdate(question.id, { question_type: type })}
@@ -69,14 +69,14 @@ export function QuestionEditor({
           <button
             onClick={onMoveUp}
             disabled={isFirst}
-            className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs leading-none"
+            className="text-slate-400 hover:text-slate-600 disabled:opacity-30 text-xs leading-none"
           >
             ▲
           </button>
           <button
             onClick={onMoveDown}
             disabled={isLast}
-            className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs leading-none"
+            className="text-slate-400 hover:text-slate-600 disabled:opacity-30 text-xs leading-none"
           >
             ▼
           </button>
@@ -87,40 +87,40 @@ export function QuestionEditor({
             type="text"
             value={question.label}
             onChange={(e) => onUpdate(question.id, { label: e.target.value })}
-            className="block w-full text-sm font-medium text-gray-900 border-0 border-b border-transparent focus:border-blue-500 focus:ring-0 p-0 bg-transparent"
+            className="block w-full text-sm font-medium text-slate-900 border-0 border-b border-transparent focus:border-indigo-500 focus:ring-0 p-0 bg-transparent"
             placeholder="Etiqueta de la pregunta"
           />
         </div>
 
         <button
           onClick={() => setShowTypeSelector(true)}
-          className="text-xs text-gray-500 hover:text-gray-700 px-2 py-1 rounded border border-gray-200 hover:border-gray-300 whitespace-nowrap"
+          className="text-xs text-slate-500 hover:text-slate-700 px-2 py-1 rounded border border-slate-200 hover:border-slate-300 whitespace-nowrap"
         >
           {QUESTION_TYPE_LABELS[question.question_type]}
         </button>
 
-        <label className="flex items-center space-x-1 text-xs text-gray-500">
+        <label className="flex items-center space-x-1 text-xs text-slate-500">
           <input
             type="checkbox"
             checked={question.is_required}
             onChange={(e) =>
               onUpdate(question.id, { is_required: e.target.checked })
             }
-            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
           />
           <span>Obligatoria</span>
         </label>
 
         <button
           onClick={() => setExpanded(!expanded)}
-          className="text-gray-400 hover:text-gray-600 text-sm"
+          className="text-slate-400 hover:text-slate-600 text-sm"
         >
           {expanded ? "▾" : "▸"}
         </button>
 
         <button
           onClick={() => onDelete(question.id)}
-          className="text-red-400 hover:text-red-600 text-sm"
+          className="text-rose-400 hover:text-rose-600 text-sm"
           title="Eliminar pregunta"
         >
           ✕
@@ -128,9 +128,9 @@ export function QuestionEditor({
       </div>
 
       {expanded && (
-        <div className="px-4 pb-4 space-y-4 border-t border-gray-100 pt-3">
+        <div className="px-4 pb-4 space-y-4 border-t border-slate-100 pt-3">
           <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
+            <label className="block text-xs font-medium text-slate-500 mb-1">
               Descripción (opcional)
             </label>
             <input
@@ -141,7 +141,7 @@ export function QuestionEditor({
                   description: e.target.value || null,
                 })
               }
-              className="block w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+              className="block w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
               placeholder="Descripción o ayuda para el encuestado"
             />
           </div>
@@ -149,7 +149,7 @@ export function QuestionEditor({
           {question.question_type === "escala" && (
             <div className="grid grid-cols-4 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-slate-500 mb-1">
                   Mínimo
                 </label>
                 <input
@@ -158,11 +158,11 @@ export function QuestionEditor({
                   onChange={(e) =>
                     handleConfigChange("min", parseInt(e.target.value) || 1)
                   }
-                  className="block w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="block w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-slate-500 mb-1">
                   Máximo
                 </label>
                 <input
@@ -171,11 +171,11 @@ export function QuestionEditor({
                   onChange={(e) =>
                     handleConfigChange("max", parseInt(e.target.value) || 5)
                   }
-                  className="block w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="block w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-slate-500 mb-1">
                   Etiqueta mín.
                 </label>
                 <input
@@ -184,12 +184,12 @@ export function QuestionEditor({
                   onChange={(e) =>
                     handleConfigChange("min_label", e.target.value)
                   }
-                  className="block w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="block w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   placeholder="Ej: Nada"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-slate-500 mb-1">
                   Etiqueta máx.
                 </label>
                 <input
@@ -198,7 +198,7 @@ export function QuestionEditor({
                   onChange={(e) =>
                     handleConfigChange("max_label", e.target.value)
                   }
-                  className="block w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="block w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   placeholder="Ej: Mucho"
                 />
               </div>
@@ -208,7 +208,7 @@ export function QuestionEditor({
           {question.question_type === "numero" && (
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-slate-500 mb-1">
                   Mínimo
                 </label>
                 <input
@@ -220,12 +220,12 @@ export function QuestionEditor({
                       e.target.value ? parseFloat(e.target.value) : null
                     )
                   }
-                  className="block w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="block w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   placeholder="Sin límite"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-slate-500 mb-1">
                   Máximo
                 </label>
                 <input
@@ -237,12 +237,12 @@ export function QuestionEditor({
                       e.target.value ? parseFloat(e.target.value) : null
                     )
                   }
-                  className="block w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="block w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
                   placeholder="Sin límite"
                 />
               </div>
               <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
+                <label className="block text-xs font-medium text-slate-500 mb-1">
                   Decimales
                 </label>
                 <input
@@ -256,7 +256,7 @@ export function QuestionEditor({
                       parseInt(e.target.value) || 0
                     )
                   }
-                  className="block w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="block w-full px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
               </div>
             </div>
@@ -265,7 +265,7 @@ export function QuestionEditor({
           {(question.question_type === "texto_corto" ||
             question.question_type === "texto_largo") && (
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">
+              <label className="block text-xs font-medium text-slate-500 mb-1">
                 Longitud máxima
               </label>
               <input
@@ -280,7 +280,7 @@ export function QuestionEditor({
                     parseInt(e.target.value) || 255
                   )
                 }
-                className="block w-32 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                className="block w-32 px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
               />
             </div>
           )}
@@ -295,7 +295,7 @@ export function QuestionEditor({
               />
               <button
                 onClick={() => onAddOption(question.id)}
-                className="mt-2 ml-8 text-xs text-blue-600 hover:text-blue-500"
+                className="mt-2 ml-8 text-xs text-indigo-600 hover:text-indigo-500"
               >
                 + Agregar opción
               </button>

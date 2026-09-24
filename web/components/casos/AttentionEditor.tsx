@@ -54,8 +54,8 @@ export function AttentionEditor({ attention, onUpdated }: Props) {
       <div
         className={`p-3 rounded-md text-sm ${
           canEdit
-            ? "bg-green-50 border border-green-200 text-green-800"
-            : "bg-gray-50 border border-gray-200 text-gray-600"
+            ? "bg-emerald-50 border border-emerald-200 text-emerald-800"
+            : "bg-slate-50 border border-slate-200 text-slate-600"
         }`}
       >
         {canEdit ? (
@@ -73,7 +73,7 @@ export function AttentionEditor({ attention, onUpdated }: Props) {
       {/* Formulario */}
       <div className="space-y-4">
         <div>
-          <label htmlFor="motivo" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="motivo" className="block text-sm font-medium text-slate-700 mb-1">
             Motivo *
           </label>
           <textarea
@@ -82,12 +82,12 @@ export function AttentionEditor({ attention, onUpdated }: Props) {
             onChange={(e) => setMotivo(e.target.value)}
             rows={2}
             disabled={!canEdit}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm disabled:bg-gray-50 disabled:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
 
         <div>
-          <label htmlFor="queSeHizo" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="queSeHizo" className="block text-sm font-medium text-slate-700 mb-1">
             Qué se hizo *
           </label>
           <textarea
@@ -96,12 +96,12 @@ export function AttentionEditor({ attention, onUpdated }: Props) {
             onChange={(e) => setQueSeHizo(e.target.value)}
             rows={3}
             disabled={!canEdit}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm disabled:bg-gray-50 disabled:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
 
         <div>
-          <label htmlFor="observaciones" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="observaciones" className="block text-sm font-medium text-slate-700 mb-1">
             Observaciones
           </label>
           <textarea
@@ -110,12 +110,12 @@ export function AttentionEditor({ attention, onUpdated }: Props) {
             onChange={(e) => setObservaciones(e.target.value)}
             rows={2}
             disabled={!canEdit}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm disabled:bg-gray-50 disabled:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
 
         <div>
-          <label htmlFor="compromisos" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="compromisos" className="block text-sm font-medium text-slate-700 mb-1">
             Compromisos
           </label>
           <textarea
@@ -124,12 +124,12 @@ export function AttentionEditor({ attention, onUpdated }: Props) {
             onChange={(e) => setCompromisos(e.target.value)}
             rows={2}
             disabled={!canEdit}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm disabled:bg-gray-50 disabled:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
 
         <div>
-          <label htmlFor="proximaAtencion" className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor="proximaAtencion" className="block text-sm font-medium text-slate-700 mb-1">
             Próxima atención
           </label>
           <input
@@ -138,13 +138,13 @@ export function AttentionEditor({ attention, onUpdated }: Props) {
             value={proximaAtencion}
             onChange={(e) => setProximaAtencion(e.target.value)}
             disabled={!canEdit}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm text-sm disabled:bg-gray-50 disabled:text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+            className="w-full px-3 py-2 border border-slate-300 rounded-md shadow-sm text-sm disabled:bg-slate-50 disabled:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
           />
         </div>
       </div>
 
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-md text-sm text-red-700">
+        <div className="p-3 bg-rose-50 border border-rose-200 rounded-md text-sm text-rose-700">
           {error}
         </div>
       )}
@@ -155,7 +155,7 @@ export function AttentionEditor({ attention, onUpdated }: Props) {
             type="button"
             onClick={handleSave}
             disabled={!hasChanges || loading}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? "Guardando..." : "Guardar cambios"}
           </button>

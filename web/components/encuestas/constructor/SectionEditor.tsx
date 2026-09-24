@@ -69,7 +69,7 @@ export function SectionEditor({
   };
 
   return (
-    <div className="border border-gray-200 rounded-lg bg-gray-50/50">
+    <div className="border border-slate-200 rounded-lg bg-slate-50/50">
       {showTypeSelector && (
         <QuestionTypeSelector
           onSelect={(type) => onAddQuestion(section.id, type)}
@@ -77,19 +77,19 @@ export function SectionEditor({
         />
       )}
 
-      <div className="px-4 py-3 flex items-center space-x-3 bg-gray-100 rounded-t-lg">
+      <div className="px-4 py-3 flex items-center space-x-3 bg-slate-100 rounded-t-lg">
         <div className="flex flex-col space-y-1">
           <button
             onClick={onMoveUp}
             disabled={isFirst}
-            className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs leading-none"
+            className="text-slate-400 hover:text-slate-600 disabled:opacity-30 text-xs leading-none"
           >
             ▲
           </button>
           <button
             onClick={onMoveDown}
             disabled={isLast}
-            className="text-gray-400 hover:text-gray-600 disabled:opacity-30 text-xs leading-none"
+            className="text-slate-400 hover:text-slate-600 disabled:opacity-30 text-xs leading-none"
           >
             ▼
           </button>
@@ -102,7 +102,7 @@ export function SectionEditor({
             onChange={(e) =>
               onUpdate(section.id, { title: e.target.value })
             }
-            className="block w-full text-sm font-semibold text-gray-900 border-0 border-b border-transparent focus:border-blue-500 focus:ring-0 p-0 bg-transparent"
+            className="block w-full text-sm font-semibold text-slate-900 border-0 border-b border-transparent focus:border-indigo-500 focus:ring-0 p-0 bg-transparent"
             placeholder="Título de la sección"
           />
           <input
@@ -113,26 +113,26 @@ export function SectionEditor({
                 description: e.target.value || null,
               })
             }
-            className="block w-full text-xs text-gray-500 border-0 border-b border-transparent focus:border-blue-500 focus:ring-0 p-0 bg-transparent mt-1"
+            className="block w-full text-xs text-slate-500 border-0 border-b border-transparent focus:border-indigo-500 focus:ring-0 p-0 bg-transparent mt-1"
             placeholder="Descripción (opcional)"
           />
         </div>
 
-        <span className="text-xs text-gray-400 whitespace-nowrap">
+        <span className="text-xs text-slate-400 whitespace-nowrap">
           {section.questions.length}{" "}
           {section.questions.length === 1 ? "pregunta" : "preguntas"}
         </span>
 
         <button
           onClick={() => setExpanded(!expanded)}
-          className="text-gray-400 hover:text-gray-600 text-sm"
+          className="text-slate-400 hover:text-slate-600 text-sm"
         >
           {expanded ? "▾" : "▸"}
         </button>
 
         <button
           onClick={() => onDelete(section.id)}
-          className="text-red-400 hover:text-red-600 text-sm"
+          className="text-rose-400 hover:text-rose-600 text-sm"
           title="Eliminar sección"
         >
           ✕
@@ -142,11 +142,11 @@ export function SectionEditor({
       {expanded && (
         <div className="px-4 py-4 space-y-3">
           {section.questions.length === 0 ? (
-            <div className="text-center py-6 text-sm text-gray-400">
+            <div className="text-center py-6 text-sm text-slate-400">
               No hay preguntas.{" "}
               <button
                 onClick={() => setShowTypeSelector(true)}
-                className="text-blue-600 hover:text-blue-500"
+                className="text-indigo-600 hover:text-indigo-500"
               >
                 Agregar primera pregunta
               </button>
@@ -172,7 +172,7 @@ export function SectionEditor({
 
           <button
             onClick={() => setShowTypeSelector(true)}
-            className="w-full py-2 border-2 border-dashed border-gray-300 rounded-lg text-sm text-gray-500 hover:border-blue-400 hover:text-blue-600 transition-colors"
+            className="w-full py-2 border-2 border-dashed border-slate-300 rounded-lg text-sm text-slate-500 hover:border-indigo-400 hover:text-indigo-600 transition-colors"
           >
             + Agregar pregunta
           </button>

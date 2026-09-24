@@ -76,13 +76,13 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
   };
 
   if (wizardLoading) {
-    return <div className="p-4 text-sm text-gray-500">Cargando datos...</div>;
+    return <div className="p-4 text-sm text-slate-500">Cargando datos...</div>;
   }
 
   // T49: Reanudación
   if (wizardData?.existing_batch_id && wizardData.existing_batch_status) {
     return (
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
         <h2 className="text-lg font-semibold mb-4">Promoción</h2>
         <div className="bg-amber-50 border border-amber-200 rounded-md p-4 mb-4">
           <p className="text-sm text-amber-800">
@@ -98,13 +98,13 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
           <button
             onClick={handleResume}
             disabled={execLoading}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm disabled:opacity-50"
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm disabled:opacity-50"
           >
             {execLoading ? "Reanudando..." : "Reanudar"}
           </button>
           <button
             onClick={onComplete}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm"
+            className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md text-sm"
           >
             Cancelar
           </button>
@@ -114,44 +114,44 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+    <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
       <h2 className="text-lg font-semibold mb-4">Promoción Masiva</h2>
 
       {step === "config" && (
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               Año origen
             </label>
             <input
               type="number"
               value={originYear ?? ""}
               onChange={(e) => setOriginYear(Number(e.target.value))}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 mb-1">
               Año destino
             </label>
             <input
               type="number"
               value={destinationYear ?? ""}
               onChange={(e) => setDestinationYear(Number(e.target.value))}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
             />
           </div>
           <div className="flex gap-3">
             <button
               onClick={handlePreview}
               disabled={!originYear || !destinationYear}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm disabled:opacity-50"
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm disabled:opacity-50"
             >
               Previsualizar
             </button>
             <button
               onClick={onComplete}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm"
+              className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md text-sm"
             >
               Cancelar
             </button>
@@ -162,27 +162,27 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
       {step === "preview" && preview && (
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="bg-gray-50 rounded-md p-3">
-              <div className="font-medium text-gray-900">Total</div>
+            <div className="bg-slate-50 rounded-md p-3">
+              <div className="font-medium text-slate-900">Total</div>
               <div className="text-2xl font-bold">{preview.total_students}</div>
             </div>
-            <div className="bg-green-50 rounded-md p-3">
-              <div className="font-medium text-green-800">Promovidos</div>
-              <div className="text-2xl font-bold text-green-600">{preview.promoted}</div>
+            <div className="bg-emerald-50 rounded-md p-3">
+              <div className="font-medium text-emerald-800">Promovidos</div>
+              <div className="text-2xl font-bold text-emerald-600">{preview.promoted}</div>
             </div>
-            <div className="bg-blue-50 rounded-md p-3">
-              <div className="font-medium text-blue-800">Egreso</div>
-              <div className="text-2xl font-bold text-blue-600">{preview.egreso}</div>
+            <div className="bg-indigo-50 rounded-md p-3">
+              <div className="font-medium text-indigo-800">Egreso</div>
+              <div className="text-2xl font-bold text-indigo-600">{preview.egreso}</div>
             </div>
-            <div className="bg-gray-50 rounded-md p-3">
-              <div className="font-medium text-gray-800">Retirados</div>
-              <div className="text-2xl font-bold text-gray-600">{preview.retired}</div>
+            <div className="bg-slate-50 rounded-md p-3">
+              <div className="font-medium text-slate-800">Retirados</div>
+              <div className="text-2xl font-bold text-slate-600">{preview.retired}</div>
             </div>
           </div>
 
-          <div className="max-h-64 overflow-y-auto border border-gray-200 rounded-md">
+          <div className="max-h-64 overflow-y-auto border border-slate-200 rounded-md">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 sticky top-0">
+              <thead className="bg-slate-50 sticky top-0">
                 <tr>
                   <th className="text-left p-2">Estudiante</th>
                   <th className="text-left p-2">Grado actual</th>
@@ -191,14 +191,14 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
               </thead>
               <tbody>
                 {preview.students.map((s) => (
-                  <tr key={s.student_id} className="border-t border-gray-100">
+                  <tr key={s.student_id} className="border-t border-slate-100">
                     <td className="p-2">
                       {s.last_names}, {s.first_names}
                     </td>
                     <td className="p-2">{s.current_nivel} {s.current_grado} - {s.section}</td>
                     <td className="p-2">
                       {s.is_egreso ? (
-                        <span className="text-blue-600 font-medium">Egreso</span>
+                        <span className="text-indigo-600 font-medium">Egreso</span>
                       ) : (
                         <span>{s.next_nivel_name} {s.next_grado_name} - {s.section}</span>
                       )}
@@ -213,13 +213,13 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
             <button
               onClick={handlePrepare}
               disabled={execLoading || !originYear || !destinationYear}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm disabled:opacity-50"
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm disabled:opacity-50"
             >
               {execLoading ? "Preparando..." : "Preparar"}
             </button>
             <button
               onClick={() => setStep("config")}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm"
+              className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md text-sm"
             >
               Volver
             </button>
@@ -229,11 +229,11 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
 
       {step === "prepare" && prepared && (
         <div className="space-y-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-md p-4">
-            <p className="text-sm text-blue-800 font-medium">
+          <div className="bg-indigo-50 border border-indigo-200 rounded-md p-4">
+            <p className="text-sm text-indigo-800 font-medium">
               Lote PREPARED — sin cambios aplicados todavía
             </p>
-            <p className="text-sm text-blue-700 mt-1">
+            <p className="text-sm text-indigo-700 mt-1">
               Total: {prepared.total_students ?? preview?.total_students ?? 0} ·
               Promovidos: {prepared.promoted ?? preview?.promoted ?? 0} ·
               Egreso: {prepared.egreso ?? preview?.egreso ?? 0}
@@ -242,13 +242,13 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
           <div className="flex gap-3">
             <button
               onClick={() => setStep("confirm")}
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm"
+              className="px-4 py-2 bg-indigo-600 text-white rounded-md text-sm"
             >
               Revisar y ejecutar
             </button>
             <button
               onClick={() => setStep("preview")}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm"
+              className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md text-sm"
             >
               Volver
             </button>
@@ -258,11 +258,11 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
 
       {step === "confirm" && (
         <div className="space-y-4">
-          <div className="bg-red-50 border border-red-200 rounded-md p-4">
-            <p className="text-sm text-red-800 font-medium">
+          <div className="bg-rose-50 border border-rose-200 rounded-md p-4">
+            <p className="text-sm text-rose-800 font-medium">
               Esta acción es irreversible
             </p>
-            <p className="text-sm text-red-700 mt-1">
+            <p className="text-sm text-rose-700 mt-1">
               Se cerrarán los períodos del año {originYear} y se crearán nuevos períodos para {destinationYear}.
               Los estudiantes en último grado serán marcados como egreso.
               {prepared?.batch_id ? ` Lote: ${prepared.status}.` : ""}
@@ -272,13 +272,13 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
             <button
               onClick={handleConfirm}
               disabled={execLoading || !idempotencyKey}
-              className="px-4 py-2 bg-red-600 text-white rounded-md text-sm disabled:opacity-50"
+              className="px-4 py-2 bg-rose-600 text-white rounded-md text-sm disabled:opacity-50"
             >
               {execLoading ? "Ejecutando..." : "Ejecutar promoción"}
             </button>
             <button
               onClick={() => setStep(prepared ? "prepare" : "preview")}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm"
+              className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md text-sm"
             >
               Volver
             </button>
@@ -290,11 +290,11 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
         <div className="space-y-4">
           <div className={`rounded-md p-4 ${
             result.status === "COMPLETED"
-              ? "bg-green-50 border border-green-200"
+              ? "bg-emerald-50 border border-emerald-200"
               : "bg-amber-50 border border-amber-200"
           }`}>
             <p className={`text-sm font-medium ${
-              result.status === "COMPLETED" ? "text-green-800" : "text-amber-800"
+              result.status === "COMPLETED" ? "text-emerald-800" : "text-amber-800"
             }`}>
               {result.status === "COMPLETED"
                 ? "Promoción completada exitosamente"
@@ -303,35 +303,35 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
           </div>
 
           <div className="grid grid-cols-2 gap-4 text-sm">
-            <div className="bg-gray-50 rounded-md p-3">
+            <div className="bg-slate-50 rounded-md p-3">
               <div className="font-medium">Total</div>
               <div className="text-xl font-bold">{result.total}</div>
             </div>
-            <div className="bg-green-50 rounded-md p-3">
-              <div className="font-medium text-green-800">Procesados</div>
-              <div className="text-xl font-bold text-green-600">{result.processed}</div>
+            <div className="bg-emerald-50 rounded-md p-3">
+              <div className="font-medium text-emerald-800">Procesados</div>
+              <div className="text-xl font-bold text-emerald-600">{result.processed}</div>
             </div>
-            <div className="bg-blue-50 rounded-md p-3">
-              <div className="font-medium text-blue-800">Egreso</div>
-              <div className="text-xl font-bold text-blue-600">{result.egreso}</div>
+            <div className="bg-indigo-50 rounded-md p-3">
+              <div className="font-medium text-indigo-800">Egreso</div>
+              <div className="text-xl font-bold text-indigo-600">{result.egreso}</div>
             </div>
             {result.errors > 0 && (
-              <div className="bg-red-50 rounded-md p-3">
-                <div className="font-medium text-red-800">Errores</div>
-                <div className="text-xl font-bold text-red-600">{result.errors}</div>
+              <div className="bg-rose-50 rounded-md p-3">
+                <div className="font-medium text-rose-800">Errores</div>
+                <div className="text-xl font-bold text-rose-600">{result.errors}</div>
               </div>
             )}
           </div>
 
           {result.idempotent && (
-            <div className="bg-gray-50 border border-gray-200 rounded-md p-3 text-sm text-gray-700">
+            <div className="bg-slate-50 border border-slate-200 rounded-md p-3 text-sm text-slate-700">
               Este lote ya había sido procesado anteriormente (operación idempotente).
             </div>
           )}
 
           <button
             onClick={onComplete}
-            className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md text-sm"
+            className="px-4 py-2 bg-slate-100 text-slate-700 rounded-md text-sm"
           >
             Cerrar
           </button>
@@ -339,7 +339,7 @@ export function PromotionWizard({ institutionId, onComplete }: Props) {
       )}
 
       {execError && (
-        <div className="mt-4 bg-red-50 border border-red-200 rounded-md p-3 text-sm text-red-700">
+        <div className="mt-4 bg-rose-50 border border-rose-200 rounded-md p-3 text-sm text-rose-700">
           {execError}
         </div>
       )}
