@@ -1,4 +1,5 @@
 import type { IconName } from "@/components/ui/icons";
+import { can, type Capability } from "@/lib/permissions";
 
 export const COORD_ROLES = [
   "global",
@@ -22,6 +23,7 @@ export type NavItem = {
   icon: IconName;
   description: string;
   roles?: readonly string[];
+  capability?: Capability;
 };
 
 export const NAV_ITEMS: NavItem[] = [
@@ -36,19 +38,42 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Encuestas",
     icon: "clipboard",
     description: "Constructor, versiones y aplicaciones de encuestas",
+    capability: "encuestas.gestionar",
   },
   {
     href: "/casos",
     label: "Casos",
     icon: "folder",
     description: "Seguimiento de casos y atenciones",
+    capability: "casos.consultar",
   },
   {
-    href: "/estudiantes/registro",
+    href: "/atenciones",
+    label: "Atenciones",
+    icon: "pulse",
+    description: "Registro y consulta de atenciones psicológicas",
+    capability: "atenciones.consultar",
+  },
+  {
+    href: "/derivaciones",
+    label: "Derivaciones",
+    icon: "branch",
+    description: "Derivaciones recibidas y su vínculo con casos",
+    capability: "derivaciones.consultar",
+  },
+  {
+    href: "/estudiantes",
     label: "Estudiantes",
     icon: "cap",
-    description: "Registro de estudiantes",
-    roles: ["psicologo", "global"],
+    description: "Ficha, registro y seguimiento de estudiantes",
+    capability: "estudiantes.consultar",
+  },
+  {
+    href: "/academico/niveles",
+    label: "Académico",
+    icon: "calendar",
+    description: "Niveles, grados, secciones y asignación docente",
+    capability: "academico.gestionar",
   },
   {
     href: "/coordinador",
@@ -56,6 +81,20 @@ export const NAV_ITEMS: NavItem[] = [
     icon: "compass",
     description: "Promoción, licencias y herramientas de coordinación",
     roles: COORD_ROLES,
+  },
+  {
+    href: "/transferencias",
+    label: "Transferencias",
+    icon: "branch",
+    description: "Solicitudes de transferencia entre instituciones",
+    capability: "transferencias.consultar",
+  },
+  {
+    href: "/promocion",
+    label: "Promoción",
+    icon: "cap",
+    description: "Lotes de promoción de fin de año",
+    capability: "promocion.gestionar",
   },
   {
     href: "/analitica",
@@ -72,11 +111,39 @@ export const NAV_ITEMS: NavItem[] = [
     roles: ["global"],
   },
   {
+    href: "/licencias",
+    label: "Licencias",
+    icon: "key",
+    description: "Registro, renovación y vigencia de licencias",
+    capability: "licencias.gestionar",
+  },
+  {
+    href: "/usuarios",
+    label: "Usuarios",
+    icon: "users",
+    description: "Listado y gestión de usuarios por institución",
+    capability: "usuarios.listar",
+  },
+  {
+    href: "/mi-institucion",
+    label: "Mi institución",
+    icon: "building",
+    description: "Datos, niveles y licencia de tu institución",
+    roles: ["director", "admin_ie"],
+  },
+  {
     href: "/personal",
     label: "Personal",
     icon: "users",
     description: "Alta de personal y gestión de roles",
     roles: ["global"],
+  },
+  {
+    href: "/configuracion",
+    label: "Configuración",
+    icon: "settings",
+    description: "Perfil, seguridad y apariencia",
+    capability: "configuracion.ver",
   },
 ];
 
@@ -84,9 +151,12 @@ export function canSeeNavItem(
   item: NavItem,
   role: string | null | undefined
 ): boolean {
-  if (!item.roles) return true;
-  if (role === null || role === undefined) return false;
-  return item.roles.includes(role);
+  if (item.roles && !item.roles.includes(role ?? "")) return false;
+  if (item.capability && !can(role, item.capability)) return false;
+  if (!item.roles && !item.capability) return true;
+  if (!role) return false;
+  if (item.roles) return item.roles.includes(role);
+  return true;
 }
 
 export function pageTitleFor(pathname: string): string {

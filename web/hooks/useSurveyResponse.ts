@@ -14,6 +14,11 @@ interface SurveyResponseState {
   saving: boolean;
   completed: boolean;
   error: string | null;
+  savedAt: number | null;
+  saveError: string | null;
+  pending: number;
+  windowClosed: boolean;
+  institutionName: string | null;
 }
 
 export function useSurveyResponse(token: string | null) {
@@ -26,11 +31,17 @@ export function useSurveyResponse(token: string | null) {
     saving: false,
     completed: false,
     error: null,
+    savedAt: null,
+    saveError: null,
+    pending: 0,
+    windowClosed: false,
+    institutionName: null,
   });
 
   const autosaveTimers = useRef<Map<string, ReturnType<typeof setTimeout>>>(
     new Map()
   );
+  const pendingRef = useRef<Map<string, unknown>>(new Map());
   const cancelledRef = useRef(false);
 
   useEffect(() => {
@@ -123,12 +134,52 @@ export function useSurveyResponse(token: string | null) {
         });
       }
 
+      // RESP-06: reanudar donde quedó — primera sección con obligatorias
+      // pendientes; si todas están respondidas, la última sección con
+      // respuestas; si no hay ninguna, la primera.
+      let resumeIndex = 0;
+      const hasAnyAnswer = Object.keys(answers).length > 0;
+      let target: number | null = null;
+      for (let i = 0; i < sections.length; i += 1) {
+        const missingRequired = sections[i].questions.some((q) => {
+          if (!q.is_required) return false;
+          const val = answers[q.id];
+          if (val === null || val === undefined) return true;
+          if (typeof val === "string") return val.trim() === "";
+          if (Array.isArray(val)) return val.length === 0;
+          return false;
+        });
+        if (missingRequired) {
+          target = i;
+          break;
+        }
+      }
+      if (target === null && hasAnyAnswer) {
+        for (let i = sections.length - 1; i >= 0; i -= 1) {
+          const answeredInSection = sections[i].questions.some((q) => {
+            const val = answers[q.id];
+            if (val === null || val === undefined || val === "") return false;
+            if (Array.isArray(val)) return val.length > 0;
+            return true;
+          });
+          if (answeredInSection) {
+            target = i;
+            break;
+          }
+        }
+      }
+
+      if (target !== null) resumeIndex = target;
+
       setState((s) => ({
         ...s,
         applicationId,
         sections,
         answers,
         loading: false,
+        completed: structure.completed === true,
+        institutionName: structure.institution_name ?? null,
+        currentSectionIndex: resumeIndex,
       }));
     }
 
@@ -145,7 +196,7 @@ export function useSurveyResponse(token: string | null) {
 
       try {
         const supabase = createClient();
-        const { error } = await supabase.rpc("submit_survey_response", {
+        const { data, error } = await supabase.rpc("submit_survey_response", {
           p_token: token,
           p_application_id: state.applicationId,
           p_question_id: questionId,
@@ -153,14 +204,38 @@ export function useSurveyResponse(token: string | null) {
         });
 
         if (error) throw error;
+        if (!data?.success) {
+          const err = new Error(
+            data?.error || "No se pudo guardar la respuesta"
+          );
+          (err as Error & { code?: string }).code = data?.code;
+          throw err;
+        }
 
+        pendingRef.current.delete(questionId);
         setState((s) => ({
           ...s,
           answers: { ...s.answers, [questionId]: answer },
           saving: false,
+          savedAt: Date.now(),
+          saveError: null,
+          pending: pendingRef.current.size,
         }));
-      } catch {
-        setState((s) => ({ ...s, saving: false }));
+      } catch (err) {
+        const code = (err as Error & { code?: string }).code;
+        pendingRef.current.set(questionId, answer);
+        setState((s) => ({
+          ...s,
+          saving: false,
+          pending: pendingRef.current.size,
+          saveError:
+            code === "window_closed"
+              ? "El plazo terminó; tu avance quedó guardado."
+              : typeof navigator !== "undefined" && !navigator.onLine
+                ? "Sin conexión. Tus respuestas se guardarán al reconectar."
+                : "No pudimos guardar la última respuesta. Reintentando...",
+          windowClosed: code === "window_closed" ? true : s.windowClosed,
+        }));
       }
     },
     [state.applicationId, token]
@@ -174,6 +249,7 @@ export function useSurveyResponse(token: string | null) {
       setState((s) => ({
         ...s,
         answers: { ...s.answers, [questionId]: answer },
+        saveError: null,
       }));
 
       const timer = setTimeout(() => {
@@ -186,24 +262,91 @@ export function useSurveyResponse(token: string | null) {
     [saveAnswer]
   );
 
-  const completeSurvey = useCallback(async () => {
-    if (!state.applicationId || !token) return;
+  // RESP-04: vaciar temporizadores y pendientes antes de cambiar de sección
+  const flushPending = useCallback(async () => {
+    const timers = [...autosaveTimers.current.entries()];
+    autosaveTimers.current.clear();
+    for (const [questionId, timer] of timers) {
+      clearTimeout(timer);
+      const answer = state.answers[questionId];
+      if (answer !== undefined) {
+        await saveAnswer(questionId, answer);
+      }
+    }
+    const pending = [...pendingRef.current.entries()];
+    for (const [questionId, answer] of pending) {
+      await saveAnswer(questionId, answer);
+    }
+  }, [saveAnswer, state.answers]);
+
+  const retryPending = useCallback(async () => {
+    const pending = [...pendingRef.current.entries()];
+    if (pending.length === 0) return;
+    setState((s) => ({ ...s, saveError: null }));
+    for (const [questionId, answer] of pending) {
+      await saveAnswer(questionId, answer);
+    }
+  }, [saveAnswer]);
+
+  useEffect(() => {
+    function handleOnline() {
+      void retryPending();
+    }
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
+  }, [retryPending]);
+
+  // D1: avisar si hay respuestas sin guardar al cerrar la pestaña
+  useEffect(() => {
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (pendingRef.current.size > 0 || autosaveTimers.current.size > 0) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, []);
+
+  const completeSurvey = useCallback(async (): Promise<string | null> => {
+    if (!state.applicationId || !token) return "No se pudo finalizar la encuesta";
     setState((s) => ({ ...s, saving: true }));
 
     try {
+      await flushPending();
       const supabase = createClient();
-      const { error } = await supabase.rpc("complete_survey_application", {
-        p_token: token,
-        p_application_id: state.applicationId,
-      });
+      const { data, error } = await supabase.rpc(
+        "complete_survey_application",
+        {
+          p_token: token,
+          p_application_id: state.applicationId,
+        }
+      );
 
       if (error) throw error;
+      if (!data?.success) {
+        const err = new Error(data?.error || "No se pudo finalizar");
+        (err as Error & { code?: string }).code = data?.code;
+        throw err;
+      }
 
       setState((s) => ({ ...s, saving: false, completed: true }));
-    } catch {
-      setState((s) => ({ ...s, saving: false }));
+      return null;
+    } catch (err) {
+      const code = (err as Error & { code?: string }).code;
+      const message =
+        code === "window_closed"
+          ? "El plazo terminó; tu avance quedó guardado."
+          : (err as Error).message || "No se pudo finalizar la encuesta";
+      setState((s) => ({
+        ...s,
+        saving: false,
+        saveError: message,
+        windowClosed: code === "window_closed" ? true : s.windowClosed,
+      }));
+      return message;
     }
-  }, [state.applicationId, token]);
+  }, [state.applicationId, token, flushPending]);
 
   const goToSection = useCallback((index: number) => {
     setState((s) => ({
@@ -212,6 +355,7 @@ export function useSurveyResponse(token: string | null) {
         0,
         Math.min(index, s.sections.length - 1)
       ),
+      saveError: null,
     }));
   }, []);
 
@@ -223,7 +367,9 @@ export function useSurveyResponse(token: string | null) {
     if (total === 0) return 0;
     const answered = Object.keys(state.answers).filter((qId) => {
       const val = state.answers[qId];
-      return val !== null && val !== undefined && val !== "";
+      if (val === null || val === undefined || val === "") return false;
+      if (Array.isArray(val)) return val.length > 0;
+      return true;
     }).length;
     return Math.round((answered * 100) / total);
   }, [state.sections, state.answers]);
@@ -250,6 +396,8 @@ export function useSurveyResponse(token: string | null) {
     ...state,
     saveAnswer,
     autosave,
+    flushPending,
+    retryPending,
     completeSurvey,
     goToSection,
     getProgress,

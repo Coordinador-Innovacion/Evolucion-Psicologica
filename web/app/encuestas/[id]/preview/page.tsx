@@ -6,10 +6,15 @@ import { PreviewContent } from "@/components/encuestas/preview/PreviewContent";
 
 export default function PreviewPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
   const { id } = use(params);
+  const searchP = use(searchParams);
+  const version =
+    typeof searchP.version === "string" ? searchP.version : undefined;
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -29,7 +34,7 @@ export default function PreviewPage({
           Volver al constructor
         </Link>
       </div>
-      <PreviewContent surveyId={id} />
+      <PreviewContent surveyId={id} versionId={version} />
     </div>
   );
 }

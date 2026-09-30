@@ -38,7 +38,6 @@ export function StudentDocumentsPanel({ studentId }: Props) {
     error,
     refresh,
     download,
-    remove,
   } = useStudentDocuments(authorized ? studentId : null);
 
   if (profileLoading) {
@@ -65,14 +64,6 @@ export function StudentDocumentsPanel({ studentId }: Props) {
     }
   };
 
-  const handleRemove = async (doc: StudentDocument) => {
-    if (confirm(`Eliminar el documento "${doc.filename}"?`)) {
-      await remove(doc.id);
-    }
-  };
-
-  const isGlobal = profile?.role === "global";
-
   return (
     <div className="space-y-6">
       <div className="border border-slate-200 rounded-lg p-4 bg-slate-50">
@@ -86,16 +77,14 @@ export function StudentDocumentsPanel({ studentId }: Props) {
         documents={documents}
         loading={loading}
         error={error}
-        canDelete={isGlobal}
+        canDelete={false}
         onDownload={handleDownload}
-        onRemove={handleRemove}
+        onRemove={async () => undefined}
       />
 
-      {!isGlobal && (
-        <p className="text-xs text-slate-400">
-          La eliminación de documentos corresponde al rol Global.
-        </p>
-      )}
+      <p className="text-xs text-slate-400">
+        La interfaz no ofrece eliminar documentos clínicos (EST-08).
+      </p>
     </div>
   );
 }

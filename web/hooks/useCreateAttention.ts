@@ -28,7 +28,11 @@ export function useCreateAttention() {
     async (
       caseId: string,
       input: AttentionInput
-    ): Promise<{ ok: boolean; licenseWarning?: string } | null> => {
+    ): Promise<{
+      ok: boolean;
+      attentionId?: string;
+      licenseWarning?: string;
+    } | null> => {
       setState({ loading: true, error: null });
 
       try {
@@ -55,6 +59,7 @@ export function useCreateAttention() {
         setState({ loading: false, error: null });
         return {
           ok: true,
+          attentionId: data?.attention_id || undefined,
           licenseWarning: data?.license_warning || undefined,
         };
       } catch (err) {

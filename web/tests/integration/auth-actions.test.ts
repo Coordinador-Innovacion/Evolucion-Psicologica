@@ -124,10 +124,13 @@ describe("auth actions (signIn/signUp/signOut)", () => {
           role: "docente",
           institution_code: "MOD-001",
         },
-        emailRedirectTo: "https://example.com/auth/callback",
+        emailRedirectTo:
+          "https://example.com/auth/callback?next=/auth/cuenta-confirmada",
       },
     });
-    expect(redirect).toHaveBeenCalledWith("/auth/confirmacion");
+    expect(redirect).toHaveBeenCalledWith(
+      "/auth/verifica-correo?email=t%40x.pe"
+    );
   });
 
   it("signUp sin institution_code redirige a error=institution", async () => {

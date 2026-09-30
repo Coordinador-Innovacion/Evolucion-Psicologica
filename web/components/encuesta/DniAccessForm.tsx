@@ -7,6 +7,8 @@ import { logClientError, toUserMessage } from "@/lib/errors";
 
 interface Props {
   token: string;
+  basePath?: string;
+  nextSegment?: string;
 }
 
 interface AccessResult {
@@ -16,7 +18,11 @@ interface AccessResult {
   name: string;
 }
 
-export function DniAccessForm({ token }: Props) {
+export function DniAccessForm({
+  token,
+  basePath = "/encuesta",
+  nextSegment = "acceso",
+}: Props) {
   const router = useRouter();
   const [dni, setDni] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,7 +70,7 @@ export function DniAccessForm({ token }: Props) {
   const handleContinue = () => {
     if (!result) return;
     router.push(
-      `/encuesta/${token}/acceso?app=${result.application_id}&type=${result.respondent_type}&rid=${result.respondent_id}&name=${encodeURIComponent(result.name)}`
+      `${basePath}/${token}/${nextSegment}?app=${result.application_id}&type=${result.respondent_type}&rid=${result.respondent_id}&name=${encodeURIComponent(result.name)}`
     );
   };
 

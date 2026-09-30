@@ -9,9 +9,14 @@ export async function middleware(request: NextRequest) {
     "/auth/login",
     "/auth/registro",
     "/auth/confirmacion",
+    "/auth/verifica-correo",
+    "/auth/cuenta-confirmada",
     "/auth/callback",
     "/auth/recuperar",
     "/auth/nueva-clave",
+    "/403",
+    "/404",
+    "/500",
   ];
   const isPublicPath = publicPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)

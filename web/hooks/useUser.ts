@@ -1,10 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { isAuthSessionMissingError } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/client";
 import type { Tables } from "@/types/supabase";
 
 type Profile = Tables<"perfiles">;
+
+const RETRY_MS = 1_500;
+const MAX_RETRIES = 20;
+
+function isNetworkError(error: { name?: string; message?: string }): boolean {
+  return (
+    error.name === "AuthRetryableFetchError" ||
+    /fetch|network|load failed|econn|etimedout/i.test(error.message ?? "")
+  );
+}
 
 /**
  * Hook para obtener el perfil del usuario autenticado.
@@ -16,37 +27,72 @@ export function useUser() {
 
   useEffect(() => {
     const supabase = createClient();
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    let attempts = 0;
+    let cancelled = false;
 
-    async function getProfile() {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        setProfile(null);
-        setLoading(false);
-        return;
-      }
-
-      const { data } = await supabase
-        .from("perfiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .single();
-
-      setProfile(data);
-      setLoading(false);
+    function retry(): boolean {
+      if (cancelled || attempts >= MAX_RETRIES) return false;
+      attempts += 1;
+      timer = setTimeout(() => void getProfile(), RETRY_MS);
+      return true;
     }
 
-    getProfile();
+    async function getProfile() {
+      if (cancelled) return;
+      try {
+        const {
+          data: { user },
+          error: userErr,
+        } = await supabase.auth.getUser();
+
+        if (!user) {
+          if (
+            userErr &&
+            !isAuthSessionMissingError(userErr) &&
+            isNetworkError(userErr) &&
+            retry()
+          ) {
+            return;
+          }
+          setProfile(null);
+          setLoading(false);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from("perfiles")
+          .select("*")
+          .eq("user_id", user.id)
+          .single();
+
+        if (error && isNetworkError(error) && retry()) return;
+
+        setProfile(data);
+        setLoading(false);
+      } catch (err) {
+        if (isNetworkError(err as Error) && retry()) {
+          return;
+        }
+        setProfile(null);
+        setLoading(false);
+      }
+    }
+
+    void getProfile();
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(() => {
-      getProfile();
+      attempts = 0;
+      void getProfile();
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+      subscription.unsubscribe();
+    };
   }, []);
 
   return { profile, loading };

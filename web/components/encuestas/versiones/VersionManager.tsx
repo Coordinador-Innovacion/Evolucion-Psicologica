@@ -5,11 +5,97 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEncuestas } from "@/hooks/useEncuestas";
 import { logClientError, toUserMessage } from "@/lib/errors";
-import type { SurveyVersionItem } from "@/types/encuestas";
+import type {
+  SurveyOptionData,
+  SurveyQuestionData,
+  SurveyQuestionType,
+  SurveySectionData,
+  SurveyVersionItem,
+} from "@/types/encuestas";
+import { Modal } from "@/components/ui/modal";
+import { Button } from "@/components/ui/button";
+import { PublishVersionDialog } from "./PublishVersionDialog";
+import type { Tables } from "@/types/supabase";
 
 interface Props {
   surveyId: string;
   surveyTitle: string;
+}
+
+async function loadVersionSections(
+  surveyId: string,
+  versionId: string
+): Promise<SurveySectionData[]> {
+  const { createClient } = await import("@/lib/supabase/client");
+  const supabase = createClient();
+
+  const { data: sectionsRows } = await supabase
+    .from("encuesta_secciones")
+    .select("*")
+    .eq("version_id", versionId)
+    .order("sort_order", { ascending: true });
+
+  const sectionIds = (sectionsRows || []).map((s) => s.id);
+  let questionsRows: Tables<"encuesta_preguntas">[] = [];
+  if (sectionIds.length > 0) {
+    const { data: q } = await supabase
+      .from("encuesta_preguntas")
+      .select("*")
+      .in("section_id", sectionIds)
+      .order("sort_order", { ascending: true });
+    questionsRows = q || [];
+  }
+  const questionIds = questionsRows.map((q) => q.id);
+  let optionsRows: Tables<"encuesta_opciones">[] = [];
+  if (questionIds.length > 0) {
+    const { data: o } = await supabase
+      .from("encuesta_opciones")
+      .select("*")
+      .in("question_id", questionIds)
+      .order("sort_order", { ascending: true });
+    optionsRows = o || [];
+  }
+
+  const optionsByQuestion = new Map<string, Tables<"encuesta_opciones">[]>();
+  for (const opt of optionsRows) {
+    const list = optionsByQuestion.get(opt.question_id) || [];
+    list.push(opt);
+    optionsByQuestion.set(opt.question_id, list);
+  }
+  const questionsBySection = new Map<string, Tables<"encuesta_preguntas">[]>();
+  for (const q of questionsRows) {
+    const list = questionsBySection.get(q.section_id) || [];
+    list.push(q);
+    questionsBySection.set(q.section_id, list);
+  }
+
+  return (sectionsRows || []).map((sec) => ({
+    id: sec.id,
+    title: sec.title,
+    description: sec.description,
+    sort_order: sec.sort_order,
+    questions: (questionsBySection.get(sec.id) || []).map(
+      (q): SurveyQuestionData => ({
+        id: q.id,
+        section_id: q.section_id,
+        question_type: q.question_type as SurveyQuestionType,
+        label: q.label,
+        description: q.description,
+        is_required: q.is_required,
+        sort_order: q.sort_order,
+        config: (q.config as Record<string, unknown>) || {},
+        presentation: (q.presentation as Record<string, unknown>) || {},
+        options: (optionsByQuestion.get(q.id) || []).map(
+          (o): SurveyOptionData => ({
+            id: o.id,
+            question_id: o.question_id,
+            label: o.label,
+            sort_order: o.sort_order,
+          })
+        ),
+      })
+    ),
+  }));
 }
 
 export function VersionManager({ surveyId, surveyTitle }: Props) {
@@ -18,9 +104,15 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
     useEncuestas();
   const [versions, setVersions] = useState<SurveyVersionItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [publishing, setPublishing] = useState<string | null>(null);
+  const [publishing, setPublishing] = useState(false);
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const [publishTarget, setPublishTarget] = useState<string | null>(null);
+  const [publishSections, setPublishSections] = useState<SurveySectionData[]>(
+    []
+  );
+  const [showNewVersionDialog, setShowNewVersionDialog] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -42,47 +134,48 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
     return () => { cancelled = true; };
   }, [surveyId, getSurveyVersions]);
 
-  const handlePublish = async (versionId: string) => {
-    if (
-      !confirm(
-        "¿Publicar esta versión? Una vez publicada, no podrá ser modificada."
-      )
-    ) {
-      return;
-    }
-    setPublishing(versionId);
+  const handleOpenPublish = async (versionId: string) => {
     setError(null);
     try {
-      await publishVersion(versionId);
+      const sections = await loadVersionSections(surveyId, versionId);
+      setPublishSections(sections);
+      setPublishTarget(versionId);
+    } catch (err) {
+      logClientError("VersionManager.publish.load", err);
+      setError(toUserMessage(err, "Error al preparar la publicación"));
+    }
+  };
+
+  const handlePublish = async () => {
+    if (!publishTarget) return;
+    setPublishing(true);
+    setError(null);
+    try {
+      await publishVersion(publishTarget);
       const data = await getSurveyVersions(surveyId);
       setVersions(data);
+      setPublishTarget(null);
     } catch (err) {
       logClientError("VersionManager.publish", err);
       setError(toUserMessage(err, "Error al publicar versión"));
     }
-    setPublishing(null);
+    setPublishing(false);
   };
 
   const handleCreateNewVersion = async () => {
-    if (
-      !confirm(
-        "Crear una nueva versión borrador. Podrá editar la nueva versión sin afectar las publicadas."
-      )
-    ) {
-      return;
-    }
     setCreating(true);
     setError(null);
     try {
       const result = await createNewVersion(surveyId);
       if (result.id) {
-        router.push(`/encuestas/${surveyId}/constructor`);
+        router.push(`/encuestas/${surveyId}/versiones/${result.id}/editar`);
       }
     } catch (err) {
       logClientError("VersionManager.createNewVersion", err);
       setError(toUserMessage(err, "Error al crear nueva versión"));
     }
     setCreating(false);
+    setShowNewVersionDialog(false);
   };
 
   const getStatusBadge = (status: string) => {
@@ -124,6 +217,8 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
 
   const hasDraft = versions.some((v) => v.status === "draft");
   const latestVersion = versions.length > 0 ? versions[0] : null;
+  const canCreateVersion =
+    !hasDraft && latestVersion !== null && latestVersion.status === "published";
 
   return (
     <div>
@@ -156,9 +251,9 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
           >
             Aplicaciones
           </Link>
-          {!hasDraft && latestVersion && latestVersion.status === "published" && (
+          {canCreateVersion && (
             <button
-              onClick={handleCreateNewVersion}
+              onClick={() => setShowNewVersionDialog(true)}
               disabled={creating}
               className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 border border-transparent rounded-md hover:bg-indigo-700 disabled:opacity-50"
             >
@@ -166,7 +261,11 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
             </button>
           )}
           <Link
-            href={`/encuestas/${surveyId}/constructor`}
+            href={
+              latestVersion
+                ? `/encuestas/${surveyId}/versiones/${latestVersion.id}/editar`
+                : `/encuestas/${surveyId}/constructor`
+            }
             className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
           >
             Volver al constructor
@@ -197,6 +296,11 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
                     Versión {version.version_number}
                   </span>
                   {getStatusBadge(version.status)}
+                  {version.in_use && (
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-700">
+                      🔒 en uso
+                    </span>
+                  )}
                 </div>
                 <div className="mt-1 flex items-center space-x-4 text-xs text-slate-400">
                   <span>
@@ -228,35 +332,41 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
                 {version.status === "draft" && (
                   <>
                     <Link
-                      href={`/encuestas/${surveyId}/constructor`}
+                      href={`/encuestas/${surveyId}/versiones/${version.id}/editar`}
                       className="text-xs text-indigo-600 hover:text-indigo-500 px-3 py-1.5 rounded border border-indigo-200 hover:border-indigo-300"
                     >
                       Editar
                     </Link>
                     <Link
-                      href={`/encuestas/${surveyId}/preview`}
+                      href={`/encuestas/${surveyId}/preview?version=${version.id}`}
                       className="text-xs text-slate-600 hover:text-slate-800 px-3 py-1.5 rounded border border-slate-200 hover:border-slate-300"
                     >
                       Vista previa
                     </Link>
                     <button
-                      onClick={() => handlePublish(version.id)}
-                      disabled={publishing === version.id}
+                      onClick={() => handleOpenPublish(version.id)}
+                      disabled={publishing}
                       className="text-xs text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1.5 rounded disabled:opacity-50"
                     >
-                      {publishing === version.id
-                        ? "Publicando..."
-                        : "Publicar"}
+                      Publicar
                     </button>
                   </>
                 )}
                 {version.status === "published" && (
-                  <Link
-                    href={`/encuestas/${surveyId}/preview?version=${version.id}`}
-                    className="text-xs text-slate-600 hover:text-slate-800 px-3 py-1.5 rounded border border-slate-200 hover:border-slate-300"
-                  >
-                    Ver
-                  </Link>
+                  <>
+                    <Link
+                      href={`/encuestas/${surveyId}/preview?version=${version.id}`}
+                      className="text-xs text-slate-600 hover:text-slate-800 px-3 py-1.5 rounded border border-slate-200 hover:border-slate-300"
+                    >
+                      Ver
+                    </Link>
+                    <Link
+                      href={`/encuestas/${surveyId}/versiones/${version.id}/editar`}
+                      className="text-xs text-slate-600 hover:text-slate-800 px-3 py-1.5 rounded border border-slate-200 hover:border-slate-300"
+                    >
+                      Detalle
+                    </Link>
+                  </>
                 )}
               </div>
             </div>
@@ -272,6 +382,53 @@ export function VersionManager({ surveyId, surveyTitle }: Props) {
           </p>
         </div>
       )}
+
+      {!hasDraft &&
+        latestVersion &&
+        latestVersion.status === "published" && (
+          <div className="mt-4 p-4 bg-slate-50 border border-slate-200 rounded-md">
+            <p className="text-sm text-slate-600">
+              La versión publicada es inmutable. Usa &ldquo;Nueva
+              versión&rdquo; para crear una copia editable con el mismo
+              contenido, o &ldquo;Copiar encuesta&rdquo; para una encuesta
+              nueva e independiente.
+            </p>
+          </div>
+        )}
+
+      <PublishVersionDialog
+        open={publishTarget !== null}
+        sections={publishSections}
+        publishing={publishing}
+        onClose={() => setPublishTarget(null)}
+        onConfirm={handlePublish}
+      />
+
+      <Modal
+        open={showNewVersionDialog}
+        onClose={() => setShowNewVersionDialog(false)}
+        title="Nueva versión"
+      >
+        <div className="space-y-4">
+          <p className="text-sm text-slate-600">
+            Se creará una nueva versión borrador con el mismo contenido de la
+            versión vigente. Podrás editarla sin afectar las versiones
+            publicadas.
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="secondary"
+              onClick={() => setShowNewVersionDialog(false)}
+              disabled={creating}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleCreateNewVersion} disabled={creating}>
+              {creating ? "Creando..." : "Crear nueva versión"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

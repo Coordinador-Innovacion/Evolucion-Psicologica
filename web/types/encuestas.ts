@@ -49,6 +49,9 @@ export interface SurveyListItem {
   version_count: number;
   published_versions: number;
   institution_name?: string | null;
+  application_count?: number;
+  last_application_at?: string | null;
+  current_version_number?: number | null;
 }
 
 export interface SurveyVersionItem {
@@ -59,6 +62,7 @@ export interface SurveyVersionItem {
   created_at: string;
   application_count: number;
   response_count: number;
+  in_use?: boolean;
 }
 
 export interface SurveyApplicationItem {

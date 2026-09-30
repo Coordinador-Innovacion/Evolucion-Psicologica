@@ -1,81 +1,158 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSurveyBuilder, useEncuestas } from "@/hooks/useEncuestas";
 import { logClientError, toUserMessage } from "@/lib/errors";
 import { SectionEditor } from "./SectionEditor";
+import { PublishVersionDialog } from "@/components/encuestas/versiones/PublishVersionDialog";
 
 interface Props {
   surveyId: string;
+  versionId?: string;
 }
 
-export function ConstructorContent({ surveyId }: Props) {
+export function ConstructorContent({ surveyId, versionId }: Props) {
   const router = useRouter();
   const {
     survey,
     sections,
     loading,
     saving,
+    saveStatus,
     error,
     addSection,
     updateSection,
     deleteSection,
+    duplicateSection,
     reorderSections,
     addQuestion,
     updateQuestion,
     deleteQuestion,
+    duplicateQuestion,
     reorderQuestions,
     addOption,
     updateOption,
     deleteOption,
     reorderOptions,
+    flushWrites,
     setError,
-  } = useSurveyBuilder(surveyId);
+  } = useSurveyBuilder(surveyId, versionId);
 
-  const { publishVersion } = useEncuestas();
+  const { publishVersion, createNewVersion, getSurveyVersions } =
+    useEncuestas();
 
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleValue, setTitleValue] = useState("");
+  const [editingDesc, setEditingDesc] = useState(false);
+  const [descValue, setDescValue] = useState("");
+  const [localTitle, setLocalTitle] = useState<string | null>(null);
+  const [localDesc, setLocalDesc] = useState<string | null>(null);
   const [draggedSection, setDraggedSection] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
+  const [showPublishDialog, setShowPublishDialog] = useState(false);
+  const [inUse, setInUse] = useState(false);
+  const [hasPublished, setHasPublished] = useState(false);
+  const [creatingVersion, setCreatingVersion] = useState(false);
+
+  useEffect(() => {
+    if (!survey) return;
+    const currentVersionId = survey.version_id;
+    let cancelled = false;
+    async function load() {
+      try {
+        const versions = await getSurveyVersions(surveyId);
+        const current = versions.find((v) => v.id === currentVersionId);
+        if (!cancelled) {
+          setInUse(current?.in_use === true);
+          setHasPublished(versions.some((v) => v.status === "published"));
+        }
+      } catch {
+        if (!cancelled) setInUse(false);
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [survey, surveyId, getSurveyVersions]);
 
   const handleStartEditTitle = () => {
     setTitleValue(survey?.title || "");
     setEditingTitle(true);
   };
 
+  const handleStartEditDesc = () => {
+    setDescValue(survey?.description || "");
+    setEditingDesc(true);
+  };
+
   const handleSaveTitle = async () => {
     if (!titleValue.trim() || !survey) return;
     const { createClient } = await import("@/lib/supabase/client");
     const supabase = createClient();
-    await supabase
+    const { error: updErr } = await supabase
       .from("encuestas")
       .update({ title: titleValue.trim() })
       .eq("id", survey.id);
+    if (updErr) {
+      logClientError("ConstructorContent.saveTitle", updErr);
+      setError("No se pudo guardar el título. Revisa tu conexión e intenta de nuevo.");
+      return;
+    }
+    setLocalTitle(titleValue.trim());
     setEditingTitle(false);
+  };
+
+  const handleSaveDesc = async () => {
+    if (!survey) return;
+    const { createClient } = await import("@/lib/supabase/client");
+    const supabase = createClient();
+    const { error: updErr } = await supabase
+      .from("encuestas")
+      .update({ description: descValue.trim() || null })
+      .eq("id", survey.id);
+    if (updErr) {
+      logClientError("ConstructorContent.saveDesc", updErr);
+      setError("No se pudo guardar la descripción. Revisa tu conexión e intenta de nuevo.");
+      return;
+    }
+    setLocalDesc(descValue.trim() || null);
+    setEditingDesc(false);
   };
 
   const handlePublish = async () => {
     if (!survey?.version_id) return;
-    if (
-      !confirm(
-        "¿Publicar esta versión? Una vez publicada, no podrá ser modificada."
-      )
-    ) {
-      return;
-    }
     setPublishing(true);
     setError(null);
     try {
+      const flushed = await flushWrites();
+      if (!flushed) {
+        setPublishing(false);
+        return;
+      }
       await publishVersion(survey.version_id);
       router.push(`/encuestas/${surveyId}/versiones`);
     } catch (err) {
       logClientError("ConstructorContent.publish", err);
       setError(toUserMessage(err, "Error al publicar versión"));
+      setPublishing(false);
+      setShowPublishDialog(false);
     }
-    setPublishing(false);
+  };
+
+  const handleCreateNewVersion = async () => {
+    setCreatingVersion(true);
+    setError(null);
+    try {
+      await createNewVersion(surveyId);
+      router.push(`/encuestas/${surveyId}/constructor`);
+    } catch (err) {
+      logClientError("ConstructorContent.newVersion", err);
+      setError(toUserMessage(err, "Error al crear nueva versión"));
+    }
+    setCreatingVersion(false);
   };
 
   const handleSectionDragStart = (sectionId: string) => {
@@ -122,6 +199,9 @@ export function ConstructorContent({ surveyId }: Props) {
 
   if (!survey) return null;
 
+  const isDraft = survey.status === "draft";
+  const readOnly = !isDraft;
+  const canEditMeta = isDraft && !hasPublished;
   const totalQuestions = sections.reduce(
     (acc, s) => acc + s.questions.length,
     0
@@ -140,7 +220,7 @@ export function ConstructorContent({ surveyId }: Props) {
 
       <div className="flex items-start justify-between mb-6">
         <div className="flex-1">
-          {editingTitle ? (
+          {editingTitle && canEditMeta ? (
             <div className="flex items-center space-x-2">
               <input
                 type="text"
@@ -168,20 +248,74 @@ export function ConstructorContent({ surveyId }: Props) {
             </div>
           ) : (
             <h1
-              onClick={handleStartEditTitle}
-              className="text-2xl font-bold text-slate-900 cursor-pointer hover:text-indigo-600"
-              title="Clic para editar título"
+              onClick={() => canEditMeta && handleStartEditTitle()}
+              className={`text-2xl font-bold text-slate-900 ${
+                canEditMeta
+                  ? "cursor-pointer hover:text-indigo-600"
+                  : "cursor-default"
+              }`}
+              title={canEditMeta ? "Clic para editar título" : undefined}
             >
-              {survey.title}
+              {localTitle ?? survey.title}
             </h1>
           )}
-          {survey.description && (
-            <p className="mt-1 text-sm text-slate-500">{survey.description}</p>
-          )}
+          {editingDesc && canEditMeta ? (
+            <div className="mt-1 flex items-center space-x-2">
+              <input
+                type="text"
+                value={descValue}
+                onChange={(e) => setDescValue(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleSaveDesc();
+                  if (e.key === "Escape") setEditingDesc(false);
+                }}
+                placeholder="Descripción de la encuesta"
+                className="flex-1 text-sm border-0 border-b-2 border-indigo-500 focus:ring-0 focus:outline-none bg-transparent p-0"
+                autoFocus
+              />
+              <button
+                onClick={handleSaveDesc}
+                className="text-sm text-indigo-600 hover:text-indigo-500"
+              >
+                Guardar
+              </button>
+              <button
+                onClick={() => setEditingDesc(false)}
+                className="text-sm text-slate-500 hover:text-slate-700"
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (localDesc ?? survey.description) ? (
+            <p
+              onClick={() => canEditMeta && handleStartEditDesc()}
+              className={`mt-1 text-sm text-slate-500 ${
+                canEditMeta ? "cursor-pointer hover:text-indigo-600" : ""
+              }`}
+              title={
+                canEditMeta ? "Clic para editar descripción" : undefined
+              }
+            >
+              {localDesc ?? survey.description}
+            </p>
+          ) : canEditMeta ? (
+            <p
+              onClick={handleStartEditDesc}
+              className="mt-1 text-sm text-slate-400 cursor-pointer hover:text-indigo-600"
+            >
+              + Agregar descripción
+            </p>
+          ) : null}
           <div className="mt-2 flex items-center space-x-4 text-xs text-slate-400">
             <span>
-              Versión {survey.version_number} ({survey.status})
+              Versión {survey.version_number} (
+              {survey.status === "draft" ? "Borrador" : "Publicada"})
             </span>
+            {isDraft && hasPublished && (
+              <span className="text-slate-400">
+                Título y descripción congelados por la versión publicada
+              </span>
+            )}
             <span>
               {sections.length}{" "}
               {sections.length === 1 ? "sección" : "secciones"}
@@ -190,9 +324,19 @@ export function ConstructorContent({ surveyId }: Props) {
               {totalQuestions}{" "}
               {totalQuestions === 1 ? "pregunta" : "preguntas"}
             </span>
-            {saving && (
-              <span className="text-indigo-500 animate-pulse">
-                Guardando...
+            {isDraft && (
+              <span>
+                {saving || saveStatus === "saving" ? (
+                  <span className="text-indigo-500 animate-pulse">
+                    Guardando...
+                  </span>
+                ) : saveStatus === "error" ? (
+                  <span className="text-rose-600 font-medium">
+                    Error al guardar
+                  </span>
+                ) : saveStatus === "saved" ? (
+                  <span className="text-emerald-600">Autoguardado ✓</span>
+                ) : null}
               </span>
             )}
           </div>
@@ -200,7 +344,7 @@ export function ConstructorContent({ surveyId }: Props) {
 
         <div className="ml-4 flex items-center space-x-2">
           <Link
-            href={`/encuestas/${surveyId}/preview`}
+            href={`/encuestas/${surveyId}/preview?version=${survey.version_id}`}
             className="px-3 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-md hover:bg-slate-50"
           >
             Vista previa
@@ -217,9 +361,9 @@ export function ConstructorContent({ surveyId }: Props) {
           >
             Aplicaciones
           </Link>
-          {survey.status === "draft" && (
+          {isDraft && (
             <button
-              onClick={handlePublish}
+              onClick={() => setShowPublishDialog(true)}
               disabled={publishing || totalQuestions === 0}
               className="px-4 py-2 text-sm font-medium text-white bg-emerald-600 border border-transparent rounded-md hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
               title={
@@ -228,7 +372,7 @@ export function ConstructorContent({ surveyId }: Props) {
                   : ""
               }
             >
-              {publishing ? "Publicando..." : "Publicar"}
+              Publicar
             </button>
           )}
         </div>
@@ -246,10 +390,20 @@ export function ConstructorContent({ surveyId }: Props) {
         </div>
       )}
 
-      {survey.status === "published" && (
-        <div className="mb-4 p-3 bg-emerald-50 border border-emerald-200 rounded-md text-sm text-emerald-700">
-          Esta versión está publicada y es inmutable. Para realizar cambios,
-          cree una nueva versión desde la gestión de versiones.
+      {readOnly && (
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-800">
+          <span>
+            {inUse
+              ? "Esta versión ya fue utilizada y es inmutable."
+              : "Esta versión está publicada y es inmutable. Para cambiar algo, crea una nueva versión: copia el contenido y trabaja sobre ella."}
+          </span>
+          <button
+            onClick={handleCreateNewVersion}
+            disabled={creatingVersion}
+            className="rounded-md bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {creatingVersion ? "Creando..." : "Crear nueva versión"}
+          </button>
         </div>
       )}
 
@@ -257,19 +411,22 @@ export function ConstructorContent({ surveyId }: Props) {
         {sections.map((section, idx) => (
           <div
             key={section.id}
-            draggable={survey.status === "draft"}
+            draggable={isDraft}
             onDragStart={() => handleSectionDragStart(section.id)}
-            onDragOver={(e) => handleSectionDragOver(e)}
+            onDragOver={handleSectionDragOver}
             onDrop={() => handleSectionDrop(section.id)}
             className={draggedSection === section.id ? "opacity-50" : ""}
           >
             <SectionEditor
               section={section}
+              readOnly={readOnly}
               onUpdate={updateSection}
               onDelete={deleteSection}
+              onDuplicate={duplicateSection}
               onAddQuestion={addQuestion}
               onUpdateQuestion={updateQuestion}
               onDeleteQuestion={deleteQuestion}
+              onDuplicateQuestion={duplicateQuestion}
               onReorderQuestions={reorderQuestions}
               onAddOption={addOption}
               onUpdateOption={updateOption}
@@ -302,7 +459,7 @@ export function ConstructorContent({ surveyId }: Props) {
         ))}
       </div>
 
-      {survey.status === "draft" && (
+      {isDraft && (
         <div className="mt-6">
           <button
             onClick={addSection}
@@ -313,6 +470,14 @@ export function ConstructorContent({ surveyId }: Props) {
           </button>
         </div>
       )}
+
+      <PublishVersionDialog
+        open={showPublishDialog}
+        sections={sections}
+        publishing={publishing}
+        onClose={() => setShowPublishDialog(false)}
+        onConfirm={handlePublish}
+      />
     </div>
   );
 }

@@ -9,12 +9,14 @@ export function Modal({
   title,
   children,
   footer,
+  size = "md",
 }: {
   open: boolean;
   onClose: () => void;
   title: string;
   children: ReactNode;
   footer?: ReactNode;
+  size?: "md" | "lg";
 }) {
   useEffect(() => {
     if (!open) return;
@@ -40,7 +42,9 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         aria-label={title}
-        className="relative w-full max-w-md rounded-2xl bg-white shadow-pop"
+        className={`relative w-full rounded-2xl bg-white shadow-pop ${
+          size === "lg" ? "max-w-2xl" : "max-w-md"
+        }`}
       >
         <div className="flex items-start justify-between gap-4 px-6 pt-6">
           <h2 className="text-base font-semibold text-slate-900">{title}</h2>

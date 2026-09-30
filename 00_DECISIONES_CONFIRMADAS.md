@@ -1,5 +1,6 @@
 # 00 — DECISIONES CONFIRMADAS
 
+
 ## Propósito
 
 Registro transversal de decisiones de negocio confirmadas durante la evolución del proyecto.
@@ -256,6 +257,16 @@ Reglas confirmadas:
 **Impacto:** auth, registro UI, migración 050, IMPLEMENT, TASKS.
 
 ---
+
+Prompt para MiMo (esta versión, más simple)
+
+"Necesito un ajuste puntual a handle_new_user() (nueva migración, no reescribas las anteriores). Actualmente, si institution_code viene vacío, lanza 'Código modular de I.E. obligatorio'.
+
+Quiero agregar esta excepción, antes de esa validación:
+
+Si institution_code viene vacío Y no existe todavía ninguna fila en perfiles con role = 'global', entonces: inserta el perfil con role = 'global', institution_id = NULL, y termina (RETURN NEW) — sin exigir código modular.
+Si institution_code viene vacío pero ya existe un Global, que se comporte exactamente igual que ahora (lanza el error, sin excepción).
+No toques nada del flujo cuando SÍ viene código modular (el registro docente actual queda intacto).
 
 # PROCEDIMIENTO PARA NUEVAS DECISIONES
 

@@ -7,6 +7,9 @@ interface Props {
   onUpdate: (optionId: string, label: string) => void;
   onDelete: (optionId: string) => void;
   onReorder: (orderedIds: string[]) => void;
+  iconMap?: Record<string, string>;
+  onUpdateIcon?: (optionId: string, icon: string) => void;
+  disabled?: boolean;
 }
 
 export function OptionEditor({
@@ -14,6 +17,9 @@ export function OptionEditor({
   onUpdate,
   onDelete,
   onReorder,
+  iconMap,
+  onUpdateIcon,
+  disabled = false,
 }: Props) {
   const handleMoveUp = (index: number) => {
     if (index === 0) return;
@@ -38,35 +44,54 @@ export function OptionEditor({
       </label>
       {options.map((opt, idx) => (
         <div key={opt.id} className="flex items-center space-x-2">
-          <button
-            onClick={() => handleMoveUp(idx)}
-            disabled={idx === 0}
-            className="text-slate-400 hover:text-slate-600 disabled:opacity-30 text-xs"
-            title="Mover arriba"
-          >
-            ▲
-          </button>
-          <button
-            onClick={() => handleMoveDown(idx)}
-            disabled={idx === options.length - 1}
-            className="text-slate-400 hover:text-slate-600 disabled:opacity-30 text-xs"
-            title="Mover abajo"
-          >
-            ▼
-          </button>
+          {!disabled && (
+            <>
+              <button
+                onClick={() => handleMoveUp(idx)}
+                disabled={idx === 0}
+                className="text-slate-400 hover:text-slate-600 disabled:opacity-30 text-xs"
+                title="Mover arriba"
+              >
+                ▲
+              </button>
+              <button
+                onClick={() => handleMoveDown(idx)}
+                disabled={idx === options.length - 1}
+                className="text-slate-400 hover:text-slate-600 disabled:opacity-30 text-xs"
+                title="Mover abajo"
+              >
+                ▼
+              </button>
+            </>
+          )}
           <input
             type="text"
             value={opt.label}
             onChange={(e) => onUpdate(opt.id, e.target.value)}
-            className="flex-1 px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500"
+            disabled={disabled}
+            className="flex-1 px-2 py-1 text-sm border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-60"
           />
-          <button
-            onClick={() => onDelete(opt.id)}
-            className="text-rose-400 hover:text-rose-600 text-xs"
-            title="Eliminar opción"
-          >
-            ✕
-          </button>
+          {onUpdateIcon && (
+            <input
+              type="text"
+              value={iconMap?.[opt.id] ?? ""}
+              onChange={(e) => onUpdateIcon(opt.id, e.target.value)}
+              disabled={disabled}
+              maxLength={4}
+              placeholder="Icono"
+              title="Icono para la presentación visual (emoji)"
+              className="w-16 px-2 py-1 text-sm text-center border border-slate-200 rounded focus:outline-none focus:ring-1 focus:ring-indigo-500 disabled:opacity-60"
+            />
+          )}
+          {!disabled && (
+            <button
+              onClick={() => onDelete(opt.id)}
+              className="text-rose-400 hover:text-rose-600 text-xs"
+              title="Eliminar opción"
+            >
+              ✕
+            </button>
+          )}
         </div>
       ))}
     </div>

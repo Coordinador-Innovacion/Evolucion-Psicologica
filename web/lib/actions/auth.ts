@@ -58,7 +58,9 @@ export async function signUp(formData: FormData) {
   }
 
   const origin = await getAppOrigin();
-  const emailRedirectTo = origin ? `${origin}/auth/callback` : undefined;
+  const emailRedirectTo = origin
+    ? `${origin}/auth/callback?next=/auth/cuenta-confirmada`
+    : undefined;
 
   const { error } = await supabase.auth.signUp({
     email,
@@ -78,7 +80,19 @@ export async function signUp(formData: FormData) {
     redirect("/auth/registro?error=signup");
   }
 
-  redirect("/auth/confirmacion");
+  redirect(`/auth/verifica-correo?email=${encodeURIComponent(email)}`);
+}
+
+/**
+ * Reenviar el correo de confirmación (AUTH-03, con enfriamiento en UI).
+ */
+export async function resendConfirmation(email?: string) {
+  if (!email) return;
+  const supabase = await createClient();
+  await supabase.auth.resend({
+    type: "signup",
+    email,
+  });
 }
 
 /**
@@ -117,6 +131,26 @@ export async function updatePassword(formData: FormData) {
   }
 
   redirect("/auth/login?reset=1");
+}
+
+/**
+ * Cambiar la contraseña de la sesión activa (USR-04).
+ */
+export async function changePassword(formData: FormData) {
+  const supabase = await createClient();
+  const password = formData.get("password") as string;
+  const confirm = formData.get("password_confirm") as string;
+
+  if (!password || password !== confirm || password.length < 8) {
+    redirect("/configuracion?tab=seguridad&error=password");
+  }
+
+  const { error } = await supabase.auth.updateUser({ password });
+  if (error) {
+    redirect("/configuracion?tab=seguridad&error=password");
+  }
+
+  redirect("/configuracion?tab=seguridad&ok=1");
 }
 
 /**

@@ -10,7 +10,10 @@ import { logClientError, toUserMessage } from "@/lib/errors";
 import { Button, buttonClass } from "@/components/ui/button";
 import { Card, Field, inputClasses, selectClasses } from "@/components/ui/field";
 import { Modal } from "@/components/ui/modal";
+import { Tabs } from "@/components/ui/tabs";
 import { EmptyState, ErrorBanner, LoadingScreen } from "@/components/ui/feedback";
+import { ApplicationsList } from "@/components/encuestas/aplicaciones/ApplicationsList";
+import { CopySurveyDialog } from "@/components/encuestas/CopySurveyDialog";
 
 export default function EncuestasPage() {
   const router = useRouter();
@@ -22,6 +25,13 @@ export default function EncuestasPage() {
   const [newInstitutionId, setNewInstitutionId] = useState("");
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [tab, setTab] = useState("encuestas");
+  const [copyTarget, setCopyTarget] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
+  const [copying, setCopying] = useState(false);
+  const [copyError, setCopyError] = useState<string | null>(null);
 
   const isGlobal = profile?.role === "global";
   const { institutions, loading: institutionsLoading } = useInstitutions(
@@ -58,19 +68,19 @@ export default function EncuestasPage() {
     }
   };
 
-  const handleCopy = async (sourceId: string, sourceTitle: string) => {
-    const newTitle = prompt(
-      `Copiar "${sourceTitle}". Nuevo título:`,
-      `${sourceTitle} (copia)`
-    );
-    if (!newTitle) return;
+  const handleCopy = async (newTitle: string) => {
+    if (!copyTarget) return;
+    setCopying(true);
+    setCopyError(null);
     try {
-      const id = await copySurvey(sourceId, newTitle);
+      const id = await copySurvey(copyTarget.id, newTitle);
+      setCopyTarget(null);
       router.push(`/encuestas/${id}/constructor`);
     } catch (err) {
       logClientError("encuestas.copy", err);
-      alert(toUserMessage(err, "Error al copiar"));
+      setCopyError(toUserMessage(err, "Error al copiar"));
     }
+    setCopying(false);
   };
 
   return (
@@ -82,8 +92,38 @@ export default function EncuestasPage() {
             Gestiona las encuestas institucionales
           </p>
         </div>
-        <Button onClick={() => setShowCreate(true)}>Nueva encuesta</Button>
+        <Link href="/encuestas/nueva" className={buttonClass()}>
+          Nueva encuesta
+        </Link>
       </div>
+
+      <Tabs
+        tabs={[
+          { id: "encuestas", label: "Encuestas", count: surveys.length },
+          {
+            id: "aplicaciones",
+            label: "Aplicaciones",
+            count: surveys.reduce(
+              (acc, s) => acc + (s.application_count ?? 0),
+              0
+            ),
+          },
+        ]}
+        active={tab}
+        onChange={setTab}
+      />
+
+      <CopySurveyDialog
+        open={copyTarget !== null}
+        sourceTitle={copyTarget?.title ?? ""}
+        copying={copying}
+        onClose={() => {
+          setCopyTarget(null);
+          setCopyError(null);
+        }}
+        onCopy={handleCopy}
+      />
+      {copyTarget && copyError && <ErrorBanner>{copyError}</ErrorBanner>}
 
       <Modal open={showCreate} onClose={closeCreate} title="Crear encuesta">
         <form onSubmit={handleCreate}>
@@ -153,7 +193,9 @@ export default function EncuestasPage() {
         </form>
       </Modal>
 
-      {loading ? (
+      {tab === "aplicaciones" ? (
+        <ApplicationsList />
+      ) : loading ? (
         <LoadingScreen label="Cargando encuestas..." />
       ) : surveys.length === 0 ? (
         <EmptyState
@@ -170,7 +212,7 @@ export default function EncuestasPage() {
             >
               <div className="min-w-0 flex-1">
                 <Link
-                  href={`/encuestas/${survey.id}/constructor`}
+                  href={`/encuestas/${survey.id}`}
                   className="block truncate text-sm font-medium text-slate-900 hover:text-indigo-600"
                 >
                   {survey.title}
@@ -186,6 +228,11 @@ export default function EncuestasPage() {
                       {survey.institution_name}
                     </span>
                   )}
+                  {survey.current_version_number != null && (
+                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2.5 py-0.5 font-medium text-emerald-700">
+                      V{survey.current_version_number} vigente
+                    </span>
+                  )}
                   <span>
                     {survey.version_count}{" "}
                     {survey.version_count === 1 ? "versión" : "versiones"}
@@ -197,6 +244,20 @@ export default function EncuestasPage() {
                       : "publicadas"}
                   </span>
                   <span>
+                    {survey.application_count ?? 0}{" "}
+                    {(survey.application_count ?? 0) === 1
+                      ? "aplicación"
+                      : "aplicaciones"}
+                  </span>
+                  {survey.last_application_at && (
+                    <span>
+                      Última aplicación:{" "}
+                      {new Date(survey.last_application_at).toLocaleDateString(
+                        "es-PE"
+                      )}
+                    </span>
+                  )}
+                  <span>
                     {new Date(survey.created_at).toLocaleDateString("es-PE")}
                   </span>
                 </div>
@@ -205,7 +266,9 @@ export default function EncuestasPage() {
                 <Button
                   size="sm"
                   variant="ghost"
-                  onClick={() => handleCopy(survey.id, survey.title)}
+                  onClick={() =>
+                    setCopyTarget({ id: survey.id, title: survey.title })
+                  }
                 >
                   Copiar
                 </Button>
@@ -216,7 +279,7 @@ export default function EncuestasPage() {
                   Versiones
                 </Link>
                 <Link
-                  href={`/encuestas/${survey.id}/constructor`}
+                  href={`/encuestas/${survey.id}`}
                   className={buttonClass("primary", "sm")}
                 >
                   Abrir
