@@ -42,6 +42,7 @@ export function MinimalRegistration({ desde }: Props) {
   const [firstNames, setFirstNames] = useState("");
   const [lastNames, setLastNames] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [sexo, setSexo] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -56,6 +57,7 @@ export function MinimalRegistration({ desde }: Props) {
     setFirstNames("");
     setLastNames("");
     setBirthDate("");
+    setSexo("");
     setSaveError(null);
     setDuplicates(null);
     setSavedId(null);
@@ -102,6 +104,7 @@ export function MinimalRegistration({ desde }: Props) {
         p_document_number: dni.trim(),
         p_birth_date: birthDate,
         p_force_create: force,
+        p_sexo: sexo || null,
       });
       if (error) throw error;
       if (!data?.success) {
@@ -322,6 +325,17 @@ export function MinimalRegistration({ desde }: Props) {
                 className={inputClasses}
                 required
               />
+            </Field>
+            <Field label="Sexo" hint="Opcional">
+              <select
+                value={sexo}
+                onChange={(e) => setSexo(e.target.value)}
+                className={selectClasses}
+              >
+                <option value="">No especificado</option>
+                <option value="M">Masculino</option>
+                <option value="F">Femenino</option>
+              </select>
             </Field>
           </div>
 

@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { logClientError, toUserMessage } from "@/lib/errors";
 import { buttonClass } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
-import { Field, inputClasses } from "@/components/ui/field";
+import { Field, inputClasses, selectClasses } from "@/components/ui/field";
 
 export type EditableStudent = {
   id: string;
@@ -18,6 +18,7 @@ export type EditableStudent = {
   district: string | null;
   phone: string | null;
   email: string | null;
+  sexo: string | null;
 };
 
 /**
@@ -43,6 +44,7 @@ export function EditStudentDrawer({
   const [district, setDistrict] = useState(student.district ?? "");
   const [phone, setPhone] = useState(student.phone ?? "");
   const [email, setEmail] = useState(student.email ?? "");
+  const [sexo, setSexo] = useState(student.sexo ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,6 +59,7 @@ export function EditStudentDrawer({
       setDistrict(student.district ?? "");
       setPhone(student.phone ?? "");
       setEmail(student.email ?? "");
+      setSexo(student.sexo ?? "");
       setError(null);
     });
     return () => cancelAnimationFrame(raf);
@@ -78,6 +81,7 @@ export function EditStudentDrawer({
         p_district: district.trim() || null,
         p_phone: phone.trim() || null,
         p_email: email.trim() || null,
+        p_sexo: sexo || null,
       });
       if (error) throw error;
       if (!data?.success) {
@@ -156,6 +160,17 @@ export function EditStudentDrawer({
               onChange={(e) => setEmail(e.target.value)}
               className={inputClasses}
             />
+          </Field>
+          <Field label="Sexo">
+            <select
+              value={sexo}
+              onChange={(e) => setSexo(e.target.value)}
+              className={selectClasses}
+            >
+              <option value="">No especificado</option>
+              <option value="M">Masculino</option>
+              <option value="F">Femenino</option>
+            </select>
           </Field>
           <Field label="Domicilio" className="sm:col-span-2">
             <input

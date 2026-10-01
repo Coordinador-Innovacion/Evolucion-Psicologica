@@ -140,7 +140,7 @@ async function loadFicha(studentId: string, role: string): Promise<Ficha> {
   const studentRes = await supabase
     .from("estudiantes")
     .select(
-      "id, first_names, last_names, document_type, document_number, birth_date, birth_place, address, district, phone, email"
+      "id, first_names, last_names, document_type, document_number, birth_date, birth_place, address, district, phone, email, sexo"
     )
     .eq("id", studentId)
     .maybeSingle();

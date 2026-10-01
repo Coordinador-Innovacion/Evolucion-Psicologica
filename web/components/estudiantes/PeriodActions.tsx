@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
+import { useSeccionesCatalog, withCurrentSection } from "@/hooks/useSeccionesCatalog";
 import { logClientError, toUserMessage } from "@/lib/errors";
 import { buttonClass } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
@@ -28,8 +29,6 @@ type Props = {
   onClose: () => void;
   onChanged: () => void;
 };
-
-const SECTIONS = ["A", "B", "U"];
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
@@ -69,6 +68,17 @@ export function PeriodActions({
   const [error, setError] = useState<string | null>(null);
 
   const retornoInstitution = isGlobal ? instSel : profile.institution_id;
+
+  // Catálogo de secciones de la I.E. relevante para la acción abierta
+  const sectionsInstitutionId =
+    open === "retorno"
+      ? retornoInstitution
+      : (activePeriod?.institution_id ?? null);
+  const { sections: catalogSections } = useSeccionesCatalog(sectionsInstitutionId);
+  const sectionOptions = useMemo(
+    () => withCurrentSection(catalogSections, section),
+    [catalogSections, section]
+  );
 
   // Catálogos según la acción abierta
   useEffect(() => {
@@ -306,7 +316,7 @@ export function PeriodActions({
                 onChange={(e) => setSection(e.target.value)}
                 className={selectClasses}
               >
-                {SECTIONS.map((s) => (
+                {sectionOptions.map((s) => (
                   <option key={s} value={s}>
                     {s}
                   </option>
@@ -458,7 +468,7 @@ export function PeriodActions({
                 onChange={(e) => setSection(e.target.value)}
                 className={selectClasses}
               >
-                {SECTIONS.map((s) => (
+                {sectionOptions.map((s) => (
                   <option key={s} value={s}>
                     {s}
                   </option>

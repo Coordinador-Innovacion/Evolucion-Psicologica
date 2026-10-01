@@ -133,6 +133,32 @@ export interface Database {
           created_at?: string;
         };
       };
+      secciones: {
+        Row: {
+          id: string;
+          institution_id: string;
+          name: string;
+          active: boolean;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          institution_id: string;
+          name: string;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          institution_id?: string;
+          name?: string;
+          active?: boolean;
+          created_at?: string;
+          updated_at?: string;
+        };
+      };
       estudiantes: {
         Row: {
           id: string;
@@ -146,6 +172,7 @@ export interface Database {
           district: string | null;
           phone: string | null;
           email: string | null;
+          sexo: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -161,6 +188,7 @@ export interface Database {
           district?: string | null;
           phone?: string | null;
           email?: string | null;
+          sexo?: string | null;
           created_at?: string;
           updated_at?: string;
         };
@@ -176,6 +204,7 @@ export interface Database {
           district?: string | null;
           phone?: string | null;
           email?: string | null;
+          sexo?: string | null;
           created_at?: string;
           updated_at?: string;
         };

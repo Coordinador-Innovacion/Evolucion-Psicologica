@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import { can } from "@/lib/permissions";
 import { getInstitutionScope } from "@/components/layout/ScopeSelector";
 import { useDocumentUpload } from "@/hooks/useDocumentUpload";
+import { useSeccionesCatalog, withCurrentSection } from "@/hooks/useSeccionesCatalog";
 import { logClientError, toUserMessage } from "@/lib/errors";
 import { buttonClass } from "@/components/ui/button";
 import { PageHeader } from "@/components/ui/page-header";
@@ -39,6 +40,7 @@ type FormState = {
   district: string;
   phone: string;
   email: string;
+  sexo: string;
   institutionId: string;
   schoolYear: string;
   nivelId: string;
@@ -95,7 +97,6 @@ const EMPTY_NEED: NeedState = {
 
 const DRAFT_KEY = "ep:student-draft:v1";
 const RELATIONSHIPS = ["padre", "madre", "abuelo/a", "tío/a", "hermano/a", "otro"];
-const SECTIONS = ["A", "B", "U"];
 
 function today(): string {
   return new Date().toISOString().slice(0, 10);
@@ -123,6 +124,7 @@ function defaultForm(role: string, institutionId: string | null): FormState {
     district: "",
     phone: "",
     email: "",
+    sexo: "",
     institutionId:
       role === "global" ? (scope && scope !== "all" ? scope : "") : institutionId ?? "",
     schoolYear: String(new Date().getFullYear()),
@@ -229,6 +231,14 @@ export function StudentWizard({ profile, initialDoc, completar, desde }: Props) 
   const [niveles, setNiveles] = useState<{ id: string; name: string }[]>([]);
   const [grados, setGrados] = useState<{ id: string; name: string }[]>([]);
   const [catalogError, setCatalogError] = useState<string | null>(null);
+
+  const { sections: catalogSections, error: seccionesError } = useSeccionesCatalog(
+    form.institutionId
+  );
+  const sectionOptions = useMemo(
+    () => withCurrentSection(catalogSections, form.section),
+    [catalogSections, form.section]
+  );
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -420,7 +430,7 @@ export function StudentWizard({ profile, initialDoc, completar, desde }: Props) 
           year <= 2100 &&
           form.nivelId &&
           form.gradoId &&
-          SECTIONS.includes(form.section) &&
+          sectionOptions.includes(form.section) &&
           form.startDate
         );
       }
@@ -544,6 +554,7 @@ export function StudentWizard({ profile, initialDoc, completar, desde }: Props) 
         p_grado_id: form.gradoId || null,
         p_section: form.section,
         p_start_date: form.startDate || null,
+        p_sexo: form.sexo || null,
         p_father: canFamily ? personPayload(form.father) : null,
         p_mother: canFamily ? personPayload(form.mother) : null,
         p_guardian: canFamily ? personPayload(form.guardian, true) : null,
@@ -803,6 +814,17 @@ export function StudentWizard({ profile, initialDoc, completar, desde }: Props) 
                       className={inputClasses}
                     />
                   </Field>
+                  <Field label="Sexo" hint="Opcional">
+                    <select
+                      value={form.sexo}
+                      onChange={(e) => setField("sexo", e.target.value)}
+                      className={selectClasses}
+                    >
+                      <option value="">No especificado</option>
+                      <option value="M">Masculino</option>
+                      <option value="F">Femenino</option>
+                    </select>
+                  </Field>
                 </div>
               )}
             </section>
@@ -889,7 +911,7 @@ export function StudentWizard({ profile, initialDoc, completar, desde }: Props) 
                     onChange={(e) => setField("section", e.target.value)}
                     className={selectClasses}
                   >
-                    {SECTIONS.map((s) => (
+                    {sectionOptions.map((s) => (
                       <option key={s} value={s}>
                         {s}
                       </option>
@@ -916,9 +938,9 @@ export function StudentWizard({ profile, initialDoc, completar, desde }: Props) 
                   )}
                 </p>
               )}
-              {catalogError && (
+              {(catalogError || seccionesError) && (
                 <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700">
-                  {catalogError}
+                  {catalogError ?? seccionesError}
                 </p>
               )}
             </section>
@@ -1188,6 +1210,16 @@ export function StudentWizard({ profile, initialDoc, completar, desde }: Props) 
                     form.phone,
                     form.email,
                   ].filter(Boolean).join(" · ") || "—")}
+                  {summaryRow(
+                    "Sexo",
+                    mode === "existente"
+                      ? "—"
+                      : form.sexo === "M"
+                        ? "Masculino"
+                        : form.sexo === "F"
+                          ? "Femenino"
+                          : "No especificado"
+                  )}
                 </dl>
                 <dl className="rounded-xl border border-line p-4">
                   <h3 className="mb-2 text-sm font-semibold text-ink">Matrícula</h3>

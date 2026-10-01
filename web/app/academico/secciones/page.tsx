@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/useUser";
 import { useInstitutionScope } from "@/hooks/useInstitutionScope";
@@ -10,6 +11,8 @@ import { logClientError, toUserMessage } from "@/lib/errors";
 import { PageHeader } from "@/components/ui/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card, Field, inputClasses, selectClasses } from "@/components/ui/field";
+import { Modal } from "@/components/ui/modal";
+import { buttonClass } from "@/components/ui/button";
 import {
   EmptyState,
   ErrorBanner,
@@ -44,6 +47,13 @@ type Group = {
   grado: string;
   section: string;
   students: PeriodoActivo[];
+};
+
+type SeccionCat = {
+  id: string;
+  institution_id: string;
+  name: string;
+  active: boolean;
 };
 
 const SELECT =
@@ -85,6 +95,16 @@ export default function AcademicoSeccionesPage() {
 
   const canManage = can(role, "academico.gestionar");
 
+  // Catálogo de secciones (tabla secciones, 062) para agregar/editar secciones
+  const [catRows, setCatRows] = useState<SeccionCat[] | null>(null);
+  const [catError, setCatError] = useState<string | null>(null);
+  const [catVersion, setCatVersion] = useState(0);
+  const [catBusy, setCatBusy] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [editId, setEditId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState<SeccionCat | null>(null);
+
   useEffect(() => {
     if (profileLoading || !role) return;
     let cancelled = false;
@@ -105,6 +125,121 @@ export default function AcademicoSeccionesPage() {
       cancelAnimationFrame(raf);
     };
   }, [profileLoading, role, scope]);
+
+  // Carga del catálogo de secciones de la I.E. en alcance
+  useEffect(() => {
+    if (profileLoading || !canManage) return;
+    if (!scope) {
+      const raf = requestAnimationFrame(() => setCatRows(null));
+      return () => cancelAnimationFrame(raf);
+    }
+    let cancelled = false;
+    const supabase = createClient();
+    supabase
+      .from("secciones")
+      .select("id, institution_id, name, active")
+      .eq("institution_id", scope)
+      .order("name")
+      .then(({ data, error }) => {
+        if (cancelled) return;
+        if (error) {
+          setCatRows(null);
+          setCatError("No se pudo cargar el catálogo de secciones.");
+        } else {
+          setCatRows((data ?? []) as unknown as SeccionCat[]);
+          setCatError(null);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [profileLoading, canManage, scope, catVersion]);
+
+  const catMessage = (err: unknown, fallback: string) => {
+    logClientError("academico.secciones.catalogo", err);
+    return toUserMessage(err, fallback);
+  };
+
+  const addSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!scope) return;
+    const name = newName.trim().toUpperCase();
+    if (!name) return;
+    setCatBusy(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("secciones")
+      .insert({ institution_id: scope, name });
+    if (error) {
+      if (error.code === "23505") {
+        toast.error(`La sección ${name} ya existe en el catálogo.`);
+      } else {
+        toast.error(catMessage(error, "No se pudo agregar la sección"));
+      }
+    } else {
+      setNewName("");
+      toast.success(`Sección ${name} agregada al catálogo`);
+      setCatVersion((v) => v + 1);
+    }
+    setCatBusy(false);
+  };
+
+  const saveRename = async (row: SeccionCat) => {
+    const name = editName.trim().toUpperCase();
+    if (!name) return;
+    setCatBusy(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("secciones")
+      .update({ name })
+      .eq("id", row.id);
+    if (error) {
+      if (error.code === "23505") {
+        toast.error(`La sección ${name} ya existe en el catálogo.`);
+      } else {
+        toast.error(catMessage(error, "No se pudo renombrar la sección"));
+      }
+    } else {
+      setEditId(null);
+      toast.success("Sección renombrada");
+      setCatVersion((v) => v + 1);
+    }
+    setCatBusy(false);
+  };
+
+  const toggleActive = async (row: SeccionCat) => {
+    setCatBusy(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("secciones")
+      .update({ active: !row.active })
+      .eq("id", row.id);
+    if (error) {
+      toast.error(catMessage(error, "No se pudo cambiar el estado"));
+    } else {
+      toast.success(row.active ? `Sección ${row.name} desactivada` : `Sección ${row.name} activada`);
+      setCatVersion((v) => v + 1);
+    }
+    setCatBusy(false);
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setCatBusy(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("secciones")
+      .delete()
+      .eq("id", deleteTarget.id);
+    if (error) {
+      toast.error(catMessage(error, "No se pudo eliminar la sección"));
+    } else {
+      toast.success(`Sección ${deleteTarget.name} eliminada del catálogo`);
+      setDeleteTarget(null);
+      setCatVersion((v) => v + 1);
+    }
+    setCatBusy(false);
+  };
 
   const years = useMemo(
     () => [...new Set((rows ?? []).map((r) => r.school_year))].sort((a, b) => b - a),
@@ -196,6 +331,143 @@ export default function AcademicoSeccionesPage() {
         <div className="mb-4">
           <ErrorBanner>{error}</ErrorBanner>
         </div>
+      )}
+
+      {canManage && (
+        <Card className="mb-6 space-y-4 p-5">
+          <div>
+            <h2 className="font-display text-base font-bold text-ink">
+              Catálogo de secciones
+            </h2>
+            <p className="text-xs text-ink-muted">
+              Secciones disponibles en los selectores de matrícula, retorno y
+              transferencia de la institución.
+            </p>
+          </div>
+
+          {!scope && (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
+              Seleccione una institución en el selector superior para gestionar sus
+              secciones.
+            </p>
+          )}
+
+          {scope && (
+            <>
+              <form onSubmit={addSection} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+                <Field label="Nueva sección" hint="Máx. 10 caracteres" className="flex-1">
+                  <input
+                    type="text"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    maxLength={10}
+                    placeholder="Ej. C"
+                    className={inputClasses}
+                  />
+                </Field>
+                <button
+                  type="submit"
+                  disabled={catBusy || !newName.trim()}
+                  className={buttonClass("primary", "md")}
+                >
+                  Agregar
+                </button>
+              </form>
+
+              {catError && <ErrorBanner>{catError}</ErrorBanner>}
+
+              {catRows === null && !catError && <SkeletonList rows={2} />}
+
+              {catRows && catRows.length === 0 && !catError && (
+                <p className="text-sm text-ink-muted">
+                  Sin secciones en el catálogo. Agregue al menos una para que aparezca en
+                  los selectores.
+                </p>
+              )}
+
+              {catRows && catRows.length > 0 && (
+                <ul className="flex flex-wrap gap-2">
+                  {catRows.map((row) => (
+                    <li
+                      key={row.id}
+                      className="flex items-center gap-2 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-sm"
+                    >
+                      {editId === row.id ? (
+                        <>
+                          <input
+                            type="text"
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            maxLength={10}
+                            className={`${inputClasses} w-24 py-1.5`}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => saveRename(row)}
+                            disabled={catBusy || !editName.trim()}
+                            className="text-xs font-medium text-brand-700 hover:underline"
+                          >
+                            Guardar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditId(null)}
+                            className="text-xs text-ink-muted hover:underline"
+                          >
+                            Cancelar
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <span
+                            className={
+                              row.active
+                                ? "font-semibold text-ink"
+                                : "text-ink-muted line-through"
+                            }
+                            title={row.active ? "Activa" : "Desactivada"}
+                          >
+                            {row.name}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditId(row.id);
+                              setEditName(row.name);
+                            }}
+                            className="text-xs text-ink-muted hover:underline"
+                          >
+                            Renombrar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => toggleActive(row)}
+                            disabled={catBusy}
+                            className="text-xs text-ink-muted hover:underline"
+                          >
+                            {row.active ? "Desactivar" : "Activar"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setDeleteTarget(row)}
+                            className="text-xs text-rose-600 hover:underline"
+                          >
+                            Eliminar
+                          </button>
+                        </>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+
+              <p className="text-xs text-ink-muted">
+                Desactivar oculta la sección de los selectores; eliminar impide usarla en
+                nuevas matrículas. Las matrículas existentes conservan su valor.
+              </p>
+            </>
+          )}
+        </Card>
       )}
 
       <Card className="mb-6">
@@ -327,6 +599,37 @@ export default function AcademicoSeccionesPage() {
         Nómina basada en <code>periodos_escolares</code> con <code>end_date</code> nulo
         (período activo). Los conteos son la base visual para la promoción de estudiantes.
       </p>
+
+      {deleteTarget && (
+        <Modal
+          open
+          onClose={() => setDeleteTarget(null)}
+          title="Eliminar sección del catálogo"
+        >
+          <p className="text-sm text-ink-muted">
+            ¿Eliminar la sección <strong>{deleteTarget.name}</strong>? Las matrículas
+            existentes conservan su valor, pero la sección no podrá elegirse en nuevas
+            matrículas.
+          </p>
+          <div className="mt-4 flex justify-end gap-3 border-t border-line pt-4">
+            <button
+              type="button"
+              onClick={() => setDeleteTarget(null)}
+              className={buttonClass("secondary", "md")}
+            >
+              Cancelar
+            </button>
+            <button
+              type="button"
+              onClick={confirmDelete}
+              disabled={catBusy}
+              className={buttonClass("danger", "md")}
+            >
+              {catBusy ? "Eliminando…" : "Eliminar"}
+            </button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }

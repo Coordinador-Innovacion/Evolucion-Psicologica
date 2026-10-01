@@ -40,3 +40,7 @@ web/test-results/
 web/playwright-report/
 web/blob-report/
 
+# Datos personales reales (nunca se suben)
+recursos/
+
+

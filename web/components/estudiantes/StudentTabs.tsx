@@ -315,6 +315,7 @@ export function DataTab({
     district: string | null;
     phone: string | null;
     email: string | null;
+    sexo?: string | null;
   };
   onEdit: () => void;
   canEdit: boolean;
@@ -324,6 +325,14 @@ export function DataTab({
     ["Apellidos", student.last_names],
     ["Tipo de documento", student.document_type],
     ["Número de documento", student.document_number],
+    [
+      "Sexo",
+      student.sexo === "M"
+        ? "Masculino"
+        : student.sexo === "F"
+          ? "Femenino"
+          : "—",
+    ],
     ["Fecha de nacimiento", fmtDate(student.birth_date)],
     ["Lugar de nacimiento", student.birth_place ?? "—"],
     ["Domicilio", student.address ?? "—"],

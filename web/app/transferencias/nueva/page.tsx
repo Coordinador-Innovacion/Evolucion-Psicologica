@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { useUser } from "@/hooks/useUser";
+import { useSeccionesCatalog } from "@/hooks/useSeccionesCatalog";
 import { can } from "@/lib/permissions";
 import { logClientError, toUserMessage } from "@/lib/errors";
 import { toast } from "sonner";
@@ -47,8 +48,6 @@ type Lookup = {
   origin_institution_name: string;
   cases: TransferableCase[];
 };
-
-const SECTION_OPTIONS = ["A", "B", "U"];
 
 function fmtDate(value: string): string {
   return new Date(value).toLocaleDateString("es-PE", {
@@ -209,6 +208,10 @@ export default function NuevaTransferenciaPage() {
   const gradoSel = nivelSel?.grados.find((g) => g.id === gradoId) ?? null;
   const destinoNombre = nivelSel?.institutions?.name ?? (isGlobal ? "" : "Mi institución");
   const caseSel = lookup?.cases.find((c) => c.caso_id === selectedCaseId) ?? null;
+
+  // Catálogo de secciones de la I.E. destino (inferida del nivel para Global)
+  const destinoInstId = isGlobal ? (nivelSel?.institution_id ?? null) : myInst;
+  const { sections: sectionOptions } = useSeccionesCatalog(destinoInstId);
 
   const valid =
     Boolean(lookup && selectedCaseId && nivelId && gradoId && section) &&
@@ -455,7 +458,7 @@ export default function NuevaTransferenciaPage() {
               className={selectClasses}
             >
               <option value="">Seleccionar sección...</option>
-              {SECTION_OPTIONS.map((s) => (
+              {sectionOptions.map((s) => (
                 <option key={s} value={s}>
                   {s}
                 </option>
